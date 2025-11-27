@@ -1,0 +1,10 @@
+{
+  "name": "restaurant-service-platform",
+  "private": false,
+  "workspaces": [
+    "web-client",
+    "staff_app", 
+    "backend",
+    "packages/*"
+  ]
+}
