@@ -1,6 +1,6 @@
 {
   "name": "restaurant-service-platform",
-  "private": false,
+  "private": true,
   "workspaces": [
     "web-client",
     "staff_app", 

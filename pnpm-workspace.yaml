@@ -1,0 +1,5 @@
+packages:
+  - backend
+  - staff_app
+  - web-client
+  - packages/*
