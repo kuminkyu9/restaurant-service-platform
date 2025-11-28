@@ -8,8 +8,8 @@ pnpm install
 pnpm -r dev
 
 # 3. 특정 프로젝트만 스타트
-pnpm --filter ./web-client dev	# 웹
-pnpm --filter ./staff_app start 	# 앱: 메트로		// pnpm --filter staff-app start --web   # 웹으로 보는법
+pnpm --filter ./web-client dev	# 웹 <br />
+pnpm --filter ./staff_app start 	# 앱: 메트로		// pnpm --filter staff-app start --web   # 웹으로 보는법<br />
 pnpm --filter ./backend dev		# 백
 
 # 4. 특정 프로젝트만 빌드
