@@ -13,13 +13,14 @@ export function CustomerMain() {
 
   const test = (a: number) => {
     console.log(a);
-    setIsModalOpen(true)
+    setIsModalOpen(true);
   }
 
   return (
     <>
       <div onClick={() => test(1)}>{isModalOpen} CustomerMain</div>
       <CustomerMainHeader restaurantName={restaurantName} tableNumber={tableNumber}  />
+      <div>ds</div>
       <MenuListItem />
     </>
   )

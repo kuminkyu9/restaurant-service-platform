@@ -7,14 +7,15 @@ npm run dev
 사용 설정, 기술(라이브러리)
     -절대경로                넘 편행
     -tailwindCSS            css 간편화(파일 안나누게?)
-    
+    -react-router-dom       페이지 전환 라우터
+
     //  위는 설치 및 설정 완료/아래 안함
 
-    -react-router-dom       페이지 전환 라우터
     -axios                  api
     -tanstack/react-query   서버 상태 관리(캐싱 및, 백그라운드 데이터 갱신) 
     -react-hook-form        회원가입, 로그인 등 유효성 검사(성능 고려 및 최신 라이브러리로 효율적인 코드 작성)
     -Zustand                상태관리
+    -구글 로그인(사장 web)
 
 
 // react 첨이여서 첨하면서 알게된거 아래 끄적끄적(백지에서 쓴거라서 매우 이상할 수 있음 정확한 명칭 등)
@@ -31,3 +32,5 @@ useState는 왼쪽 변수 오른쪽 변수에 값 할당 함수 usetState 괄호
 
 onClick에서 사용함수가 있을 경우 초반에 렌더링 되면서 해당 함수가 실행이 되는데 함수 내용안에 useState 리렌더링 하는게 있음 안됌(무한루프 가능성으로) 
 그래서 onClick={() => test()} 이렇게 한번 감싸야함. useState변수 없음 안해도 되긴하는데 권장인데 .ts는 무조건인듯 걍 하는게 정밴듯
+
+import 해서 가져올게 파일에 type값만 있다면 import type { User, } from '../../packages/shared-types/user.ts'; 이렇게 해야댐

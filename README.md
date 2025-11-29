@@ -16,4 +16,4 @@ pnpm --filter ./backend dev		# 백
 pnpm --filter web-client build
 
 # 5. 각 프로젝트 패키지 라이브러리 설치 방법
-ex:  pnpm --filter ./backend add @prisma/client
+ex:  pnpm --filter ./backend add @prisma/client   // pnpm --filter ./<프로젝트명> add <라이브러리 또는 패키지 이름> 
