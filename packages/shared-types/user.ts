@@ -5,7 +5,7 @@ export type UserRole = 'OWNER'|'CUSTOMER'|'STAFF';
  * @property {number} id - 사용자 고유 ID
  * @property {'OWNER'|'CUSTOMER'|'STAFF'} role - 사용자의 역할
  * @property {number} [restaurantId] - 레스토랑 ID (선택 사항)
- * @property {string} name - 사용자 이름
+ * @property {string} name - 사용자 이름(실명)
  */
 export interface User {
   id: number;

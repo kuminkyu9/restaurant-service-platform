@@ -6,7 +6,8 @@ import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    {/* 라우팅 기능 활성화 */}
+    <BrowserRouter> 
       <App />
     </BrowserRouter>
   </StrictMode>,

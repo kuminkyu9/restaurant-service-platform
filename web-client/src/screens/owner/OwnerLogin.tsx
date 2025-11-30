@@ -1,9 +1,9 @@
-export function OwnerLogin() {
+const OwnerLogin = () => {
   return (
     <>
-      <div className="text-orange-600">OwnerLogin1</div>
-      <div className="test">OwnerLogin2</div>
-      <div style={{color: 'red'}}>OwnerLogin3</div>
+      <h1>OwnerLogin</h1>
     </>
-  )
-}
+  );
+};
+
+export default OwnerLogin; // 보통 default export를 많이 사용합니다.
