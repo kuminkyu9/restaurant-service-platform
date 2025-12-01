@@ -12,7 +12,8 @@ const ProtectedLayout = () => {
   }
 
   const checkUserLoginStatus = () => {
-    return false;
+    return true;  // user 타입 가변적으로 하게 넣어야댐
+    // return false;
   }
 
   // 실제로는 Context API나 Redux 등에서 로그인 상태를 가져옴
