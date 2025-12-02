@@ -1,14 +1,31 @@
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '@/store/useUserStore';
 
 const OwnerLogin = () => {
   const navigate = useNavigate();
 
+  // Hook을 컴포넌트 최상단에 써야함
+  const setUser = useUserStore((state) => state.setUser);
+  const user = useUserStore.getState().user; 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const signUp = () => {
+    console.log('회원가입');
+  }
+
   const login = () => {
     console.log('login');
+    console.log(user);
+
+    setUser({
+      id: 123, // num
+      role: 'OWNER', // "OWNER" | "CUSTOMER" | "STAFF"
+      restaurantId: 456,
+      name: '테스트',
+    });
 
     // 임시 로그인 및 화면이동
     navigate('/owner/main');
@@ -18,10 +35,11 @@ const OwnerLogin = () => {
     <>
       <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm w-full max-w-md p-8">
-          {/* Logo Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* 회원가입 */}
+          <div onClick={() => signUp()} className="flex justify-center mb-6">
+            <div className="w-34 h-12 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center">
+              <span className="text-white">회원가입</span>
+              <svg className="w-6 h-6 text-white translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </div>
@@ -34,7 +52,7 @@ const OwnerLogin = () => {
 
           {/* Subtitle */}
           <p className="text-center text-sm text-gray-500 mb-8">
-            근무 관리 시스템에 오신 것을 환영합니다
+            식당 관리 시스템에 오신 것을 환영합니다
           </p>
 
           {/* Email Input */}

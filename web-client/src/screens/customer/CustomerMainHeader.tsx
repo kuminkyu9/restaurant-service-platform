@@ -5,25 +5,27 @@ interface HeaderProps {
   tableNumber: number;
 }
 
-export function CustomerMainHeader(props: HeaderProps) {   // default 가 없어서 명명 함수(이름 변경x 강제됨)    근데 default가 있으면 {} 중괄호로 안감싸도 되는데 없음 감싸야댐
+export function CustomerMainHeader({ restaurantName, tableNumber }: HeaderProps) { 
   return (
-    <>
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
-                {/* <Utensils className="h-5 w-5 text-white" /> */}
-                <img src={Logo} className='w-5.5 h-5.5 filter grayscale invert brightness-200' alt="웹 로고" />
-              </div>
-              <div>
-                <h1 className="text-gray-900">{props.restaurantName}</h1>
-                <p className="text-gray-500">테이블 {props.tableNumber}번</p>
-              </div>
+    <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
+              <img 
+                src={Logo} 
+                className="w-5.5 h-5.5 filter grayscale invert brightness-200" 
+                alt="가게 로고" 
+              />
+            </div>
+            <div>
+              {/* props. 안 붙여도 됨 */}
+              <h1 className="text-gray-900">{restaurantName}</h1>
+              <p className="text-gray-500">테이블 {tableNumber}번</p>
             </div>
           </div>
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   );
 }
