@@ -25,7 +25,7 @@ const ProtectedLayout = () => {
     return <Navigate to="/owner/login" replace />;
   }
 
-  // 로그인 되어 있으면, 'children'에 해당하는 컴포넌트(ProfilePage 등)를 렌더링
+  // 로그인 되어 있으면, 'children'에 해당하는 컴포넌트(OwnerMain 등)를 렌더링
   // Outlet은 자식 라우트가 렌더링될 위치를 지정
   return <Outlet />; 
 };

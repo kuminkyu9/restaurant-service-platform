@@ -1,13 +1,32 @@
 import { useUserStore } from '@/store/useUserStore';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
-import OwnerMainRestaurantItem from '@/screens/owner/OwnerMainRestaurantItem';
+import OwnerMainProfileDropDown from '@/screens/owner/OwnerMainProfileDropDown';
+import RestaurantListItem from '@/screens/owner/RestaurantListItem';
+import { useNavigate } from 'react-router-dom';
 
-export function OwnerMain() {
+const OwnerMain = () => {
+  const navigate = useNavigate();
   const user = useUserStore.getState().user; 
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const setModal = (val: boolean) => setIsModalOpen(val);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const setAddModal = (val: boolean) => setIsAddModalOpen(val);
+
+  const [isProfile, setIsProfileOpen] = useState(false);
+  const setProfileDropDown = (val: boolean) => setIsProfileOpen(val);
+  const profile = () => {
+    console.log('프로필');
+    navigate('/owner/profile-main');
+  }
+  // const setting = () => {
+  //   console.log('설정');
+  //   navigate('/owner/profile-main');
+  // }
+  const logout = () => {
+    console.log('로그아웃');
+    // navigate('owner/login');
+    navigate(-1);
+  }
 
   const [restaurantName, setRestaurantName] = useState('');
   const [address, setAddress] = useState('');
@@ -15,7 +34,11 @@ export function OwnerMain() {
   const addRestaurant = () => {
     console.log(user);
     console.log(`식당이름: ${restaurantName}, 주소: ${address}`)
-    setModal(false);
+    setAddModal(false);
+  }
+
+  const delRestaurant = (index: number) => {
+    console.log('index: '+index+', 해당 식당 삭제')
   }
 
   return (
@@ -36,7 +59,7 @@ export function OwnerMain() {
           </div>
         </div>
         {/* 식당 추가 버튼 */}
-        <button onClick={() => setModal(true)} className="cursor-pointer flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <button onClick={() => setAddModal(true)} className="cursor-pointer flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -47,28 +70,34 @@ export function OwnerMain() {
           <div className="text-right hidden sm:block">
             <div className="text-sm font-bold text-gray-900">김민수</div>
           </div>
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+          <div onClick={() => setProfileDropDown(true)} className="cursor-pointer w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
             김
           </div>
         </div>
       </header>
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6">
-        {/* Restaurant Card */}
-        <OwnerMainRestaurantItem 
+        {/* Restaurant Card   List 식으로 해서 index 값 넣어야댐 */}
+        <RestaurantListItem 
           img={undefined} name={'맛있는 한식당'} address={'서울시 강남구 테헤란로 123'} category={2} 
           movePath={()=> {
             console.log('해당 식당 이동');
+            navigate('/owner/main/restaurant-main');
           }} 
-          del={() => {
-            console.log('해당 식당 삭제');
-          }} 
+          del={() => delRestaurant(1)} 
         />
       </main>
-       {/* 모달 위치: 최상위 div 닫기 직전 */}
+      <OwnerMainProfileDropDown
+        isOpen={isProfile}
+        onClose={() => setProfileDropDown(false)}
+        onProfile={() => profile()}
+        // onSetting={() => setting()}
+        onLogout={() => logout()}
+      ></OwnerMainProfileDropDown>
+      {/* 식당 추가 모달    모달 위치: 최상위 div 닫기 직전 */}
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => setModal(false)}
+        isOpen={isAddModalOpen}
+        onClose={() => setAddModal(false)}
         title="새 식당 추가"
       >
         {/* 모달 내용 */}
@@ -106,5 +135,7 @@ export function OwnerMain() {
         </div>
       </Modal>
     </div>
-  )
-}
+  );
+};
+
+export default OwnerMain;

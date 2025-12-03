@@ -1,5 +1,5 @@
-import {MenuListItem} from "@/screens/customer/MenuListItem"
-import {CustomerMainHeader} from "@/screens/customer/CustomerMainHeader"
+import MenuListItem from "@/screens/customer/MenuListItem"
+import CustomerMainHeader from "@/screens/customer/CustomerMainHeader"
 
 import { useState } from "react";
 
@@ -22,7 +22,7 @@ const CustomerMain = () => {
       <div>ds</div>
       <MenuListItem />
     </>
-  )
+  );
 };
 
 export default CustomerMain;

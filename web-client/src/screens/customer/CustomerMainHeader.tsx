@@ -5,7 +5,7 @@ interface HeaderProps {
   tableNumber: number;
 }
 
-export function CustomerMainHeader({ restaurantName, tableNumber }: HeaderProps) { 
+const CustomerMainHeader = ({ restaurantName, tableNumber }: HeaderProps) => { 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div className="px-6 py-4">
@@ -28,4 +28,6 @@ export function CustomerMainHeader({ restaurantName, tableNumber }: HeaderProps)
       </div>
     </header>
   );
-}
+};
+
+export default CustomerMainHeader

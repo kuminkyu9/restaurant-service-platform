@@ -2,9 +2,11 @@ import type { RouteObject } from 'react-router-dom';
 
 import TypeChecker from '@/screens/TypeChecker';
 import CustomerMain from '@/screens/customer/CustomerMain'
-import { OwnerMain } from '@/screens/owner/OwnerMain';
+import OwnerMain from '@/screens/owner/OwnerMain';
 import OwnerLogin from '@/screens/owner/OwnerLogin';
-import ProfilePage from '@/screens/owner/ProfilePage';  // test용임 삭제해야댐
+import OwnerRestaurantMain from '@/screens/owner/restaurant/RestaurantMain';
+import ProfileMain from '@/screens/owner/profile/ProfileMain';
+
 import NotFoundPage from '@/screens/NotFoundPage';
 
 // 옵션: 보호된 경로를 처리하는 레이아웃 컴포넌트 
@@ -20,13 +22,15 @@ export const appRoutes: RouteObject[] = [
   
   {path: 'owner/login', element: <OwnerLogin />, },
 
+
+
   // 보호된 경로들은 부모 라우트로 묶어서 관리할 수 있음(안에 있는 경로들은 ProtectedLayout파일 코드에 따라 보호되면서 동작함)
   {path: '/', element: <ProtectedLayout />,
     children: [
       // 부모 경로 '/'에 합쳐져서 '/profile'이 됌
-      {path: 'profile', element: <ProfilePage />, },
       {path: 'owner/main', element: <OwnerMain />, },
-      
+      {path: 'owner/main/restaurant-main', element: <OwnerRestaurantMain />, },
+      {path: 'owner/profile-main', element: <ProfileMain />, },
     ],
   },
 
