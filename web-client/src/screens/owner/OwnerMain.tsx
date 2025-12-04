@@ -31,14 +31,36 @@ const OwnerMain = () => {
   const [restaurantName, setRestaurantName] = useState('');
   const [address, setAddress] = useState('');
 
+  const resetModal = () => {
+    setRestaurantName('');
+    setAddress('');
+  }
+
   const addRestaurant = () => {
     console.log(user);
     console.log(`식당이름: ${restaurantName}, 주소: ${address}`)
+    resetModal();
     setAddModal(false);
   }
 
+  const moveRestaurant = (index: number) => {
+
+    // 쿼리 피라미터 사용 예시(흠 전역변수로 하면 안해도 될 것 같기도 하고 데모 데이터 넣어서 다 만들어보고 고민 해보기)
+    // const restaurantName = '맛있는 국밥집';
+    // const menuList = ['순대국밥', '고기국밥'];
+    // // 메뉴 리스트 같은 배열은 JSON.stringify로 문자열화하여 전달합니다.
+    // const queryString = new URLSearchParams({
+    //   name: restaurantName,
+    //   menus: JSON.stringify(menuList), // 문자열: "[\"순대국밥\",\"고기국밥\"]"
+    // }).toString();
+    // navigate(`/owner/profile-main?${queryString}`);
+
+    console.log('index: '+index+', 해당 식당 이동');
+    navigate('/owner/main/restaurant-main');
+  }
+
   const delRestaurant = (index: number) => {
-    console.log('index: '+index+', 해당 식당 삭제')
+    console.log('index: '+index+', 해당 식당 삭제');
   }
 
   return (
@@ -80,10 +102,7 @@ const OwnerMain = () => {
         {/* Restaurant Card   List 식으로 해서 index 값 넣어야댐 */}
         <RestaurantListItem 
           img={undefined} name={'맛있는 한식당'} address={'서울시 강남구 테헤란로 123'} category={2} 
-          movePath={()=> {
-            console.log('해당 식당 이동');
-            navigate('/owner/main/restaurant-main');
-          }} 
+          movePath={()=> moveRestaurant(1)} 
           del={() => delRestaurant(1)} 
         />
       </main>
@@ -97,7 +116,10 @@ const OwnerMain = () => {
       {/* 식당 추가 모달    모달 위치: 최상위 div 닫기 직전 */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setAddModal(false)}
+        onClose={() => {
+          setAddModal(false);
+          resetModal();
+        }}
         title="새 식당 추가"
       >
         {/* 모달 내용 */}

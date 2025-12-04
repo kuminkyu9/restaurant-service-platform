@@ -6,6 +6,7 @@ import OwnerMain from '@/screens/owner/OwnerMain';
 import OwnerLogin from '@/screens/owner/OwnerLogin';
 import OwnerRestaurantMain from '@/screens/owner/restaurant/RestaurantMain';
 import ProfileMain from '@/screens/owner/profile/ProfileMain';
+import CategoryMain from '@/screens/owner/category/CategoryMain';
 
 import NotFoundPage from '@/screens/NotFoundPage';
 
@@ -29,8 +30,9 @@ export const appRoutes: RouteObject[] = [
     children: [
       // 부모 경로 '/'에 합쳐져서 '/profile'이 됌
       {path: 'owner/main', element: <OwnerMain />, },
-      {path: 'owner/main/restaurant-main', element: <OwnerRestaurantMain />, },
       {path: 'owner/profile-main', element: <ProfileMain />, },
+      {path: 'owner/main/restaurant-main', element: <OwnerRestaurantMain />, },
+      {path: 'owner/main/restaurant/category-main', element: <CategoryMain />, },
     ],
   },
 

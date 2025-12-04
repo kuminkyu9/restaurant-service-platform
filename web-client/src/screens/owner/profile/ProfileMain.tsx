@@ -111,9 +111,9 @@ const ProfileMain = () => {
       </main>
 
       {/* Help Button (Fixed) */}
-      <button className="fixed bottom-6 right-6 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors z-20">
+      {/* <button className="fixed bottom-6 right-6 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-colors z-20">
         <span className="font-bold text-lg">?</span>
-      </button>
+      </button> */}
     </div>
   );
 };

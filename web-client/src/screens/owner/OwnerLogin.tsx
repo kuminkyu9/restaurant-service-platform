@@ -36,8 +36,8 @@ const OwnerLogin = () => {
       <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm w-full max-w-md p-8">
           {/* 회원가입 */}
-          <div onClick={() => signUp()} className="flex justify-center mb-6">
-            <div className="w-34 h-12 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center">
+          <div className="flex justify-center mb-6">
+            <div onClick={() => signUp()} className="cursor-pointer w-34 h-12 bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center">
               <span className="text-white">회원가입</span>
               <svg className="w-6 h-6 text-white translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

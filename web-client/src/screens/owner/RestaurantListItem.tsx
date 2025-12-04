@@ -1,5 +1,3 @@
-
-
 interface itemProps {
   img: React.ReactNode;
   name: string;
