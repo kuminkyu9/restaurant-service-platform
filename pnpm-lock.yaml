@@ -36,6 +36,8 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/shared-types: {}
+
   staff_app:
     dependencies:
       expo-status-bar:
@@ -63,6 +65,9 @@ importers:
 
   web-client:
     dependencies:
+      '@restaurant/shared-types':
+        specifier: workspace:*
+        version: link:../packages/shared-types
       react:
         specifier: ^19.2.0
         version: 19.2.0

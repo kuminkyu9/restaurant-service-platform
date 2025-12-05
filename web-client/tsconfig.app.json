@@ -27,7 +27,8 @@
     /* 절대경로@ */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared-types/*": ["../../packages/shared-types/*"]
     }
   },
   "include": ["src"]

@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import type { User, } from '../../../packages/shared-types/user.ts';
+import type { User } from '@restaurant/shared-types/user'; 
+
 
 const ProtectedLayout = () => {
   // 변수를 전역변수나 상태관리로 어캐 해서 여기저기서 쓸 수 있게 해야됌 중요!
