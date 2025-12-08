@@ -101,7 +101,7 @@ const OwnerMain = () => {
       <main className="max-w-5xl mx-auto p-6">
         {/* Restaurant Card   List 식으로 해서 index 값 넣어야댐 */}
         <RestaurantListItem 
-          img={undefined} name={'맛있는 한식당'} address={'서울시 강남구 테헤란로 123'} category={2} 
+          img={undefined} name={"맛있는 한식당"} address={"서울시 강남구 테헤란로 123"} category={2} 
           movePath={()=> moveRestaurant(1)} 
           del={() => delRestaurant(1)} 
         />

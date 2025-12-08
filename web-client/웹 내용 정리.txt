@@ -61,3 +61,11 @@ Hook은 최상단에 써야함, 함수안에 사용하면 안됌
 localstorage는 영구적(수동삭제전까지 데이터 유지) sessionStorage는 브라우저 탭 닫히면 데이터 삭제(탭/창마다 독립적인 데이터)
 
 useEffect 컴포넌트가 처음 로드될 때 실행함(화면 다 그려진후 렌더링 후 ) 그래서 사용자 데이터 가져오는 코드를 보통 넣음
+
+속성값 빼고 다 작은 따옴표 속성만 "" 큰 따옴표임 다른건 작은 따옴표
+
+변수/속성 이름: camelCase (예: userName, menuList, categoryId)
+함수 이름: camelCase (예: handleCLick, fetchData)
+컴포넌트 이름: PascalCase (예: MenuPage, Spinner)
+
+db에서는 보통 속성 _ 언더스코어 케이스 snake_case

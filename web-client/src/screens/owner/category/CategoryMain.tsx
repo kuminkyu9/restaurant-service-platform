@@ -67,7 +67,7 @@ const CategoryMain = () => {
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6 space-y-4">
         {/* Menu Item 1 */}
-        <MenuListItem menuName={'김치찌개'} content={'얼큰한 김치찌개'} price={9000}
+        <MenuListItem menuName={"김치찌개"} content={"얼큰한 김치찌개"} price={9000}
           edit={()=> editMenu(1)} 
           del={() => delMenu(1)} 
         />
