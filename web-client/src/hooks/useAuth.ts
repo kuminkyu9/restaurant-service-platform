@@ -10,8 +10,8 @@ const useAuth = () => {
     // 실제로는 서버에서 사용자 정보를 가져오는 API 호출
     setTimeout(() => {
       // 예시 데이터: 사용자가 사장님이라고 가정
-      // const fetchedUserType: UserType = 'owner'; 
-      const fetchedUserType: UserType = 'customer'; 
+      const fetchedUserType: UserType = 'owner'; 
+      // const fetchedUserType: UserType = 'customer'; // ㅇ
       setUserType(fetchedUserType);
       setLoading(false);
     }, 500); 

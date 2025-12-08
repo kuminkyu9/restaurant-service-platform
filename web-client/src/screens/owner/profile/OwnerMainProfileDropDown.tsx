@@ -63,7 +63,6 @@ const OwnerMainProfileDropDown = ({ isOpen, onClose, onProfile,
             로그아웃
           </button>
         </div>
-
       </div>
     </>
   );

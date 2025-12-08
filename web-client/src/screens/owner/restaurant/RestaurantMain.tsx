@@ -1,7 +1,9 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { QrCode } from 'lucide-react';
 import Modal from '@/components/Modal';
+import QrModal from '@/screens/owner/restaurant/QRModal';
 import CategoryListItem from '@/screens/owner/restaurant/CategoryListItem';
 
 const RestaurantMain = () => {
@@ -27,6 +29,21 @@ const RestaurantMain = () => {
     console.log('index: '+index+', 해당 카테고리 삭제');
   }
 
+  // 모달의 열림/닫힘 상태 관리
+  const [isOpen, setIsOpen] = useState(false);
+  // 애니메이션 종료 후 완전히 숨기기 위한 별도 상태 (선택 사항)
+  const [isRendered, setIsRendered] = useState(false);
+  const openModal = () => {
+    setIsRendered(true); // 렌더링 시작
+    // 다음 틱에서 애니메이션 시작 (transition 적용을 위해 필요)
+    setTimeout(() => setIsOpen(true), 10); 
+  };
+  const closeModal = () => {
+    setIsOpen(false); // 애니메이션 역재생 시작
+    // 애니메이션이 끝난 후 (duration-300 = 300ms) 컴포넌트를 DOM에서 제거
+    setTimeout(() => setIsRendered(false), 300); 
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 relative">
       {/* Header */}
@@ -48,6 +65,15 @@ const RestaurantMain = () => {
               <span className="text-xs text-gray-500">카테고리 관리</span>
             </div>
           </div>
+          {/* **QR 생성 버튼** */}
+          <button
+            onClick={() => openModal()}
+            className="cursor-pointer flex items-center space-x-2 px-3 py-1.5 border border-solid border-gray-400 text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-200 focus:ring-opacity-50 transition duration-150 ease-in-out"
+          >
+            {/* QrCode 아이콘 사용, Tailwind text-white 클래스로 색상 설정 */}
+            <QrCode className="w-4 h-4" />
+            <span>QR 생성</span>
+          </button>
         </div>
         <button onClick={() => setAddModal(true)} className="cursor-pointer flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,6 +122,9 @@ const RestaurantMain = () => {
           </button>
         </div>
       </Modal>
+
+      {/* 바텀 모달 컨테이너 */}
+      <QrModal isOpen={isOpen} isRendered={isRendered} closeModal={() => closeModal()} />
     </div>
   );
 };

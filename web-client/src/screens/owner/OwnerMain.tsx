@@ -1,7 +1,7 @@
 import { useUserStore } from '@/store/useUserStore';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
-import OwnerMainProfileDropDown from '@/screens/owner/OwnerMainProfileDropDown';
+import OwnerMainProfileDropDown from '@/screens/owner/profile/OwnerMainProfileDropDown';
 import RestaurantListItem from '@/screens/owner/RestaurantListItem';
 import { useNavigate } from 'react-router-dom';
 

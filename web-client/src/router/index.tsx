@@ -3,7 +3,8 @@ import type { RouteObject } from 'react-router-dom';
 import TypeChecker from '@/screens/TypeChecker';
 import CustomerMain from '@/screens/customer/CustomerMain'
 import OwnerMain from '@/screens/owner/OwnerMain';
-import OwnerLogin from '@/screens/owner/OwnerLogin';
+import OwnerLogin from '@/screens/owner/account/OwnerLogin';
+import RegisterForm from '@/screens/owner/account/RegisterForm';
 import OwnerRestaurantMain from '@/screens/owner/restaurant/RestaurantMain';
 import ProfileMain from '@/screens/owner/profile/ProfileMain';
 import CategoryMain from '@/screens/owner/category/CategoryMain';
@@ -23,6 +24,7 @@ export const appRoutes: RouteObject[] = [
   
   {path: 'owner/login', element: <OwnerLogin />, },
 
+  {path: 'owner/register', element: <RegisterForm />, },
 
 
   // 보호된 경로들은 부모 라우트로 묶어서 관리할 수 있음(안에 있는 경로들은 ProtectedLayout파일 코드에 따라 보호되면서 동작함)

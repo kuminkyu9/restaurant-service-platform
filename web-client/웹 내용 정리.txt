@@ -8,14 +8,15 @@ npm run dev
     -절대경로                넘 편행
     -tailwindCSS            css 간편화(파일 안나누게?)
     -react-router-dom       페이지 전환 라우터
+    -Zustand                상태관리
+    -lucide-react           아이콘 쓸수 있는거(import { ChevronLeft } from 'lucide-react';)
+    -react-hook-form        회원가입, 로그인 등 유효성 검사(성능 고려 및 최신 라이브러리로 효율적인 코드 작성)
 
     //  위는 설치 및 설정 완료/아래 안함
-
-    -Zustand                상태관리
     -axios                  api
     -tanstack/react-query   서버 상태 관리(캐싱 및, 백그라운드 데이터 갱신) 
-    -react-hook-form        회원가입, 로그인 등 유효성 검사(성능 고려 및 최신 라이브러리로 효율적인 코드 작성)
-    -구글 로그인(사장 web)
+    
+
 
 
 로직? 내용?
