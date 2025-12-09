@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { QrCode } from 'lucide-react';
 import Modal from '@/components/Modal';
-import QrModal from '@/screens/owner/restaurant/QRModal';
+import QrModal from '@/screens/owner/restaurant/QrModal';
 import CategoryListItem from '@/screens/owner/restaurant/CategoryListItem';
 
 const RestaurantMain = () => {
