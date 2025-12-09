@@ -21,6 +21,7 @@ export const appRoutes: RouteObject[] = [
   {path: '/', element: <TypeChecker />, },
 
   {path: '/customer/main', element: <CustomerMain />, },
+  // {path: '/customer/main?restaurantId=123', element: <CustomerMain />, },
   
   {path: 'owner/login', element: <OwnerLogin />, },
 
