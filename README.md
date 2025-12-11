@@ -13,7 +13,7 @@ pnpm --filter ./staff_app start 	# 앱: 메트로		// pnpm --filter staff-app st
 pnpm --filter ./backend dev		# 백
 
 # 4. 특정 프로젝트만 빌드
-pnpm --filter web-client build
+pnpm --filter ./web-client build
 
 # 5. 각 프로젝트 패키지 라이브러리 설치 방법
 ex:  pnpm --filter ./backend add @prisma/client   // pnpm --filter ./<프로젝트명> add <라이브러리 또는 패키지 이름> 
@@ -27,3 +27,6 @@ pnpm --filter ./backend exec prisma generate
 
 # 6.3. Prisma Studio열기
 pnpm --filter ./backend exec prisma studio
+
+# 6.4. 마이그레이션 이력 관리 없이 현재 스키마 상태를 데이터베이스에 즉시 동기화
+pnpm --filter ./backend exec prisma db push

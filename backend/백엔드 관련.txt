@@ -1,0 +1,161 @@
+헷갈리는 것들 적기(진짜 아무것도 모르는 상태에서 쓰는거)
+
+
+1. 백엔드 전체 구조 및 구성 요소
+  백엔드는 기본적으로 **클라이언트(프론트엔드)**의 요청을 받아 데이터를 처리하고, 
+  데이터베이스와 통신하여 결과를 반환하는 역할
+  주요 구성 요소는 다음과 같음(A, B, C, D)
+--
+  A. 애플리케이션 서버 (프레임워크)
+    사용자의 요청(Request)을 처리하고 응답(Response)을 생성하는 핵심 로직이 구현되는 영역
+    -
+    A.1 역할: REST API 엔드포인트 정의, 비즈니스 로직 처리, DB와 통신, 인증/인가 처리 등
+    -
+    A.2 대표 프레임워크:
+      JavaScript/Node.js: Express, NestJS, Fastify
+      Python: Django, Flask, FastAPI
+      Java: Spring Boot
+      기타: Ruby on Rails (Ruby), ASP.NET (C#) 등
+--
+  B. 데이터베이스 (DB)
+    데이터를 저장, 관리, 조회
+    -
+    B.1 역할: 데이터 영속성(Persistence) 보장
+    -
+    B.2 분류:
+      관계형 DB (RDBMS): 정형화된 데이터에 적합 (예: PostgreSQL, MySQL, MariaDB, Oracle)
+      비관계형 DB (NoSQL): 비정형 데이터나 대규모 데이터에 적합 (예: MongoDB, Redis, DynamoDB)
+    -
+    B.3데이터 접근 방식:
+      SQL (Structured Query Language): DB와 직접 소통하기 위한 언어
+      ORM (Object-Relational Mapping): 코드(객체)와 DB(관계형 데이터)를 매핑해주는 도구 (예: Prisma, TypeORM, Sequelize)
+--
+  C. 배포 및 인프라 (클라우드 서비스)
+    개발된 백엔드 애플리케이션을 사용자들이 접근할 수 있도록 인터넷 상에 구동시키는 환경
+    -
+    서비스 유형:
+      C.1 클라우드 인프라 제공업체: 서버 컴퓨터 자체를 빌려줌 (예: AWS (Amazon Web Services), Google Cloud Platform (GCP), Microsoft Azure)
+      -
+      C.2 PaaS (Platform as a Service) / 배포 호스팅: 서버 관리 부담을 줄이고 코드 배포에 집중할 수 있게 해줌 (예: Render, Heroku, Vercel, Netlify)
+      -
+      C.3 직접 서버 구축: 물리적인 서버 하드웨어를 직접 구매하거나 코로케이션 서비스를 이용하는 방식
+      -
+      C.4 도메인 구매: IP 주소 대신 www.myproject.com 같은 주소로 접근할 수 있게 해주는 인터넷 주소 (가비아, GoDaddy 등에서 구매 가능)
+--
+  D. 컨테이너화 및 오케스트레이션 (Docker)
+    애플리케이션과 DB 실행 환경으 표준화하고 효율적으로 관리하는 기술. C. 배포 및 인프라 과정에서 핵심적으로 사용
+    -
+    D.1 역할: 애플리케이션 및 모든 종속성(라이브러리, 설정 등)을 **컨테이너(Container)**라는 독립적인 단위로 패키징
+    -
+    D.2 사용 이유:
+      환경 일관성: 개발 환경, 테스트 환경, 운영 환경 어디서든 동일하게 작동하도록 보장
+      -
+      쉬운 배포: 컨테이너화된 애플리케이션은 클라우드 서비스(AWS 등) 위에서 손쉽게 배포 및 실행 가능
+      -
+      격리 및 효율: 각 서비스(웹 서버, DB 서버 등)를 서로 격리하여 안정성을 높이고 리소스를 효율적으로 사용
+
+
+
+==========================================================================================================================================================
+==========================================================================================================================================================
+==========================================================================================================================================================
+==========================================================================================================================================================
+
+
+
+// prisma 에 대해
+
+1. Prisma의 3가지 핵심 도구
+  Prisma 생태계는 주로 세 가지 주요 도구로 구성됩니다.
+  -
+  명칭	  설명	  역할
+  Prisma  CLI	    Command Line Interface	prisma migrate, prisma generate 등 모든 Prisma 명령어를 실행하는 도구
+  Prisma  Client	Node.js/TypeScript 라이브러리	Node.js 애플리케이션에서 데이터베이스에 쿼리(CRUD)를 실행하는 도구 (자동 생성됨)
+  Prisma  Schema	설정 파일 (schema.prisma)	데이터베이스 연결 정보, 데이터 모델, 관계 등을 정의하는 핵심 설정 파일
+-
+2. Prisma Schema (schema.prisma)의 구성 요소
+  사용자님이 질문하신 코드가 바로 이 스키마 파일입니다. 이 파일은 Prisma의 "설계도" 역할을 합니다.
+  -
+  A. 블록(Blocks)
+    스키마 파일은 크게 3가지의 블록으로 구성됩니다.
+    -
+    블록        명칭	       예시     키워드	  설명
+    generator	  generator   client   { ... }	Prisma Client를 어떻게 생성할지 설정합니다 (예: TypeScript 클라이언트 사용).
+    datasource	datasource  db       { ... }	어느 데이터베이스에 연결할지 설정합니다 (DB 종류, 연결 URL).
+    model	      model       User     { ... }	데이터베이스의 테이블(Table) 구조를 정의합니다.
+    enum	      enum        Role     { ... }	특정 필드에 들어갈 수 있는 값들을 제한하는 열거형을 정의합니다.
+  -
+  B. 필드(Fields)와 타입(Types)
+    model 블록 안에는 테이블의 컬럼(Column)에 해당하는 필드를 정의합니다.
+    -
+    prisma
+    model User {
+      id                String          @id @default(uuid()) // 필드명: id, 타입: String, 어트리뷰트: @id, @default
+      email             String          @unique
+      name              String        
+      role              Role            @default(CUSTOMER) // 커스텀 Enum 타입
+      createdAt         DateTime        @default(now())
+      ownedRestaurants  Restaurant[]
+    }
+    model Restaurant {
+      id        String    @id @default(uuid())
+      name      String
+      
+      // 이 상점을 소유한 사장님의 ID (User 테이블의 id를 참조)
+      ownerId   String
+      owner     User      @relation(fields: [ownerId], references: [id])
+    }
+  -
+  C. 어트리뷰트(Attributes)
+    필드나 블록에 추가적인 메타데이터나 제약 조건을 부여할 때 사용합니다. @ 기호로 시작합니다.
+    -
+    어트리뷰트 명칭	    위치	         설명	                                                          예시
+    @id	               필드	          기본키(Primary Key)로 지정합니다.(NULL 절대 비허용)	            @id
+    @unique	           필드	          유일키(Unique Key) 제약 조건을 추가합니다. (NULL 조건부 허용)	   @unique
+    @default()	       필드	          데이터 생성 시 기본값을 설정합니다.	                             @default(uuid()), @default(now())
+    @relation()	       필드	          두 모델 간의 관계를 정의하며 외래 키를 명시합니다.	              @relation(fields: [...], references: [...])
+    @@unique	         모델 블록	    여러 필드를 조합하여 복합 고유 키를 설정합니다.	                  @@unique([userId, restaurantId])
+    @updatedAt	       필드	          레코드가 업데이트될 때 자동으로 현재 시각으로 설정해 줍니다.	     updatedAt DateTime @updatedAt
+    @map()	           필드/모델	    Prisma 모델명과 실제 DB 테이블/컬럼명이 다를 때 매핑합니다.	      fieldName String @map("column_name")
+    @@map()	           모델 블록	    Prisma 모델 이름과 실제 DB 테이블 이름이 다를 때 매핑합니다.	    @@map("table_name")
+-
+3. 주요 명령어 및 워크플로우
+  Prisma를 사용하는 일반적인 흐름입니다.
+  -
+  명령어	                설명
+  prisma init	            새로운 Prisma 프로젝트를 시작하고 schema.prisma 파일을 생성합니다.
+  prisma migrate reset	  DB를 초기화하고 모든 마이그레이션을 다시 실행합니다 (데이터 손실 발생).
+  prisma migrate dev	    스키마 변경 사항을 바탕으로 데이터베이스 마이그레이션을 생성하고 적용합니다.
+  prisma db push          마이그레이션 이력 관리 없이 현재 스키마 상태를 데이터베이스에 즉시 동기화
+  prisma generate	        schema.prisma 파일을 기반으로 Prisma Client 코드를 생성합니다 (마이그레이션 후 필수).
+  prisma studio	          웹 기반 GUI로 데이터베이스 내용을 확인하고 수정할 수 있는 관리 도구를 엽니다.
+-
+4. Prisma Client 사용 (애플리케이션 코드)
+  prisma generate 명령어로 생성된 Prisma Client를 사용하여 실제 애플리케이션 코드에서 데이터베이스와 상호작용합니다.
+  -
+  typescript
+  import { PrismaClient } from '@prisma/client' // Prisma Client 임포트
+
+  const prisma = new PrismaClient()
+
+  async function main() {
+    // 예시: 새로운 유저 생성
+    const newUser = await prisma.user.create({
+      data: {
+        email: 'test@test.com',
+        name: 'Test User',
+        password: 'hashedpassword',
+      },
+    })
+
+    // 예시: 모든 레스토랑 찾기 (관계형 데이터 포함)    // include, select, findUniqueOrThrow
+    const restaurants = await prisma.restaurant.findMany({
+      include: { staff: true, menus: true }, // 관계된 데이터도 함께 가져오기
+    });
+  }
+
+  main()
+  코드를 사용할 때는 주의가 필요합니다.
+
+  Prisma는 데이터베이스 스키마와 애플리케이션 코드를 타입 안전하게 연결하여, 
+  개발자가 SQL 쿼리를 직접 작성하는 대신 간결하고 안전한 코드로 데이터베이스를 조작할 수 있도록 돕습니다.
