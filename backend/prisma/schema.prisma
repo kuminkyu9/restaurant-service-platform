@@ -14,12 +14,155 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 테스트용 유저 모델
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  password  String
-  role      String   @default("CUSTOMER") // OWNER, STAFF, CUSTOMER
+// 사장님 (변동 없음)
+model Owner {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  name        String
+  restaurants Restaurant[]
+  createdAt   DateTime     @default(now())
+}
+
+// 알바생 (여러 식당에서 일할 수 있음)
+model Staff {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+  name     String
+
+  // N:M 관계의 중간 테이블 연결
+  employments Employment[]
+
   createdAt DateTime @default(now())
+}
+
+// 식당
+model Restaurant {
+  id      Int     @id @default(autoincrement())
+  name    String
+  address String
+  image   String?
+
+  ownerId Int
+  owner   Owner @relation(fields: [ownerId], references: [id])
+
+  // N:M 관계의 중간 테이블 연결
+  staffs Employment[]
+
+  categories Category[]
+  orders     Order[]
+
+  createdAt DateTime @default(now())
+}
+
+// ✅ 고용 관계 테이블 (N:M 중간 다리)
+// Staff가 어느 Restaurant에서 일하는지, + 시급이나 근무조건 정보까지 저장
+model Employment {
+  id Int @id @default(autoincrement())
+
+  staffId Int
+  staff   Staff @relation(fields: [staffId], references: [id])
+
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  // 관계별 추가 정보 (식당마다 시급이 다를 수 있음)
+  hourlyWage    Int? // 시급
+  startWorkTime String? // 출근 시간 (예: "09:00")
+  endWorkTime   String? // 퇴근 시간 (예: "18:00")
+  isManager     Boolean @default(false) // 매니저 권한 여부
+
+  // 이 계약(고용) 하에 발생한 출퇴근 기록들
+  workLogs WorkLog[]
+
+  createdAt DateTime @default(now())
+
+  // 한 알바생이 한 식당에 중복으로 고용될 순 없으므로 유니크 제약
+  @@unique([staffId, restaurantId])
+}
+
+// 출퇴근 기록
+// 사장님은 이 데이터를 조회해 급여 계산하거나 근퇴 확인
+model WorkLog {
+  id           Int        @id @default(autoincrement())
+  // 어떤 고용 관계(어느 식당의 누구)에 대한 기록인가?
+  employmentId Int
+  employment   Employment @relation(fields: [employmentId], references: [id])
+
+  workDate DateTime @default(now()) // 근무 날짜 (YYYY-MM-DD 구분용)
+
+  startTime DateTime // 출근 시간 (TimeStamp)
+  endTime   DateTime? // 퇴근 시간 (아직 퇴근 안 했으면 null)
+
+  // 휴게 시간(분) - 필요 시 추가
+  breakMinutes Int @default(0)
+
+  // 특이사항 (지각, 조퇴 사유 등)
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id           Int        @id @default(autoincrement())
+  name         String
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menus        Menu[]
+}
+
+model Menu {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Int
+  description String?
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // 주문된 내역 (통계를 위해 연결)
+  orderItems OrderItem[]
+}
+
+// 손님(Guest)을 위한 주문 모델
+// 손님 테이블(User) 없이, 주문 데이터 자체가 손님을 증명함
+model Order {
+  id Int @id @default(autoincrement())
+
+  // 어느 식당 주문인가?
+  restaurantId Int
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  // 비회원 손님 식별 정보
+  tableNumber Int // "3번 테이블 주문"
+
+  // 주문 상태 (접수대기, 조리중, 서빙완료, 완료)
+  status OrderStatus @default(PENDING)
+
+  totalPrice Int
+
+  // 주문 상세 내역
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+}
+
+model OrderItem {
+  id      Int   @id @default(autoincrement())
+  orderId Int
+  order   Order @relation(fields: [orderId], references: [id])
+
+  menuId Int
+  menu   Menu @relation(fields: [menuId], references: [id])
+
+  quantity Int // 몇 개 시켰는지
+  price    Int // 주문 시점의 가격 (메뉴 가격이 바뀌어도 기록 유지용)
+}
+
+enum OrderStatus {
+  PENDING
+  COOKING
+  SERVED
+  COMPLETED
 }

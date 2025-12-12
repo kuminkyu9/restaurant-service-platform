@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, } from '../../../packages/shared-types/user.ts';
+import type { User } from '@restaurant/shared-types/user'; 
 
 // 1. 상태와 동작의 타입 정의 (이미지의 interface 부분)
 interface UserState {

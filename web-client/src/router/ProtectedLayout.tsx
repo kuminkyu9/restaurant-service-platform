@@ -5,10 +5,9 @@ import type { User } from '@restaurant/shared-types/user';
 
 const ProtectedLayout = () => {
   // 변수를 전역변수나 상태관리로 어캐 해서 여기저기서 쓸 수 있게 해야됌 중요!
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const user: User = {
     id: 123, // num
-    role: 'OWNER', // "OWNER" | "CUSTOMER" | "STAFF"
-    restaurantId: 12345,
     name: '테스트',
   }
 
@@ -19,9 +18,10 @@ const ProtectedLayout = () => {
 
   // 실제로는 Context API나 Redux 등에서 로그인 상태를 가져옴
   const isLoggedIn = checkUserLoginStatus(); 
-  if (user.role == 'CUSTOMER') {
-    return <Navigate to="/customer/main" replace />;
-  }else if (!isLoggedIn) {
+  // if (user.role == 'CUSTOMER') {
+  //   return <Navigate to="/customer/main" replace />;
+  // }else 
+    if (!isLoggedIn) {
     // 로그인 안 되어 있으면, 바로 로그인 페이지로 강제 이동 (리다이렉트)
     return <Navigate to="/owner/login" replace />;
   }
