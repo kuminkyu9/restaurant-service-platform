@@ -14,150 +14,147 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 사장님 (변동 없음)
+// 사장님
 model Owner {
-  id          Int          @id @default(autoincrement())
-  email       String       @unique
-  password    String
-  name        String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
   restaurants Restaurant[]
-  createdAt   DateTime     @default(now())
+
+  @@map("owners")
 }
 
 // 알바생 (여러 식당에서 일할 수 있음)
 model Staff {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
-  name     String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
 
   // N:M 관계의 중간 테이블 연결
   employments Employment[]
 
-  createdAt DateTime @default(now())
+  @@map("staffs")
 }
 
 // 식당
 model Restaurant {
-  id      Int     @id @default(autoincrement())
-  name    String
-  address String
-  image   String?
+  id         Int      @id @default(autoincrement())
+  name       String
+  address    String
+  image      String?
+  totalTable Int      @map("total_table") // 식당 전체 테이블 개수
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  ownerId Int
+  ownerId Int   @map("owner_id")
   owner   Owner @relation(fields: [ownerId], references: [id])
 
-  // N:M 관계의 중간 테이블 연결
-  staffs Employment[]
-
+  staffs     Employment[] // N:M 관계의 중간 테이블 연결
   categories Category[]
   orders     Order[]
 
-  createdAt DateTime @default(now())
+  @@map("restaurants")
 }
 
-// ✅ 고용 관계 테이블 (N:M 중간 다리)
-// Staff가 어느 Restaurant에서 일하는지, + 시급이나 근무조건 정보까지 저장
+// 고용 관계 테이블 (N:M 중간 다리) // Staff가 어느 Restaurant에서 일하는지, + 시급이나 근무조건 정보까지 저장
 model Employment {
-  id Int @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
+  hourlyWage    Int      @map("hourly_wage")
+  startWorkTime String   @map("start_work_time") // 출근 시간 (예: "09:00")
+  endWorkTime   String   @map("end_work_time") // 퇴근 시간 (예: "18:00")
+  isManager     Boolean  @default(false) @map("is_manager") // 매니저 권한 여부
+  createdAt     DateTime @default(now()) @map("created_at")
 
-  staffId Int
-  staff   Staff @relation(fields: [staffId], references: [id])
-
-  restaurantId Int
+  staffId      Int        @map("staff_id")
+  staff        Staff      @relation(fields: [staffId], references: [id])
+  restaurantId Int        @map("restaurant_id")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 
-  // 관계별 추가 정보 (식당마다 시급이 다를 수 있음)
-  hourlyWage    Int? // 시급
-  startWorkTime String? // 출근 시간 (예: "09:00")
-  endWorkTime   String? // 퇴근 시간 (예: "18:00")
-  isManager     Boolean @default(false) // 매니저 권한 여부
+  workLogs WorkLog[] // 이 계약(고용) 하에 발생한 출퇴근 기록들
 
-  // 이 계약(고용) 하에 발생한 출퇴근 기록들
-  workLogs WorkLog[]
-
-  createdAt DateTime @default(now())
-
-  // 한 알바생이 한 식당에 중복으로 고용될 순 없으므로 유니크 제약
-  @@unique([staffId, restaurantId])
+  @@unique([staffId, restaurantId]) // 한 알바생이 한 식당에 중복으로 고용될 순 없으므로 유니크 제약
+  @@map("employments")
 }
 
-// 출퇴근 기록
-// 사장님은 이 데이터를 조회해 급여 계산하거나 근퇴 확인
+// 출퇴근 기록    (사장님은 이 데이터를 조회해 급여 계산하거나 근퇴 확인)
 model WorkLog {
-  id           Int        @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
+  workDate   DateTime  @default(now()) @map("work_date") // 근무 날짜 (YYYY-MM-DD 구분용)
+  startTime  DateTime  @map("start_time") // 출근 시간 (TimeStamp)
+  endTime    DateTime? @map("end_time") // 퇴근 시간 (아직 퇴근 안 했으면 null)
+  breakTime  Int       @default(0) @map("break_time") // 휴게 시간(분) - 필요 시 추가
+  hourlyWage Int       @map("hourly_wage") // 당시 시급 스냅샷
+  note       String? // 특이사항 (지각, 조퇴 사유 등)
+
   // 어떤 고용 관계(어느 식당의 누구)에 대한 기록인가?
-  employmentId Int
+  employmentId Int        @map("employment_id")
   employment   Employment @relation(fields: [employmentId], references: [id])
 
-  workDate DateTime @default(now()) // 근무 날짜 (YYYY-MM-DD 구분용)
-
-  startTime DateTime // 출근 시간 (TimeStamp)
-  endTime   DateTime? // 퇴근 시간 (아직 퇴근 안 했으면 null)
-
-  // 휴게 시간(분) - 필요 시 추가
-  breakMinutes Int @default(0)
-
-  // 특이사항 (지각, 조퇴 사유 등)
-  note String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@map("work_logs")
 }
 
+// 음식 유형
 model Category {
-  id           Int        @id @default(autoincrement())
-  name         String
-  restaurantId Int
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menus        Menu[]
+  id   Int    @id @default(autoincrement())
+  name String
+
+  restaurantId Int        @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade) // 식당 삭제되면 연계 삭제
+
+  menus Menu[]
+
+  @@map("categories")
 }
 
+// 메뉴(음식)
 model Menu {
-  id          Int      @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   name        String
   price       Int
-  description String?
-  categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  description String
+
+  categoryId Int      @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // 음식 유형 삭제시 연계 삭제
 
   // 주문된 내역 (통계를 위해 연결)
   orderItems OrderItem[]
+
+  @@map("menus")
 }
 
 // 손님(Guest)을 위한 주문 모델
 // 손님 테이블(User) 없이, 주문 데이터 자체가 손님을 증명함
 model Order {
-  id Int @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
+  tableNumber Int         @map("table_number") // 비회원 손님 식별 정보 "3번 테이블 주문"
+  status      OrderStatus @default(PENDING) // 주문 상태 (접수대기, 조리중, 서빙중, 완료)
+  totalPrice  Int         @map("total_price")
+  createdAt   DateTime    @default(now()) @map("created_at")
 
   // 어느 식당 주문인가?
-  restaurantId Int
+  restaurantId Int        @map("restaurant_id")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
 
-  // 비회원 손님 식별 정보
-  tableNumber Int // "3번 테이블 주문"
+  orderItems OrderItem[] // 주문 상세 내역
 
-  // 주문 상태 (접수대기, 조리중, 서빙완료, 완료)
-  status OrderStatus @default(PENDING)
-
-  totalPrice Int
-
-  // 주문 상세 내역
-  items OrderItem[]
-
-  createdAt DateTime @default(now())
+  @@map("orders")
 }
 
 model OrderItem {
-  id      Int   @id @default(autoincrement())
-  orderId Int
-  order   Order @relation(fields: [orderId], references: [id])
-
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id])
-
+  id       Int @id @default(autoincrement())
   quantity Int // 몇 개 시켰는지
   price    Int // 주문 시점의 가격 (메뉴 가격이 바뀌어도 기록 유지용)
+
+  orderId Int   @map("order_id")
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade) // 주문 삭제시 상세 내역도 연계 삭제
+  menuId  Int   @map("menu_id")
+  menu    Menu  @relation(fields: [menuId], references: [id])
+
+  @@map("order_items")
 }
 
 enum OrderStatus {

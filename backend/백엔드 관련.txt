@@ -118,6 +118,7 @@
     @updatedAt	       필드	          레코드가 업데이트될 때 자동으로 현재 시각으로 설정해 줍니다.	     updatedAt DateTime @updatedAt
     @map()	           필드/모델	    Prisma 모델명과 실제 DB 테이블/컬럼명이 다를 때 매핑합니다.	      fieldName String @map("column_name")
     @@map()	           모델 블록	    Prisma 모델 이름과 실제 DB 테이블 이름이 다를 때 매핑합니다.	    @@map("table_name")
+    @@id([현재 테이블 필드명1, 현재 테이블 필드명2...]) / 모델 블록 / 기본키 없을 경우 []안의 필드명 값이 중복되지 않게 해서 복합PK 하게 해주는거(대부분 단일 PK여서 이거 잘 안씀)
 -
 3. 주요 명령어 및 워크플로우
   Prisma를 사용하는 일반적인 흐름입니다.
@@ -160,6 +161,14 @@
   Prisma는 데이터베이스 스키마와 애플리케이션 코드를 타입 안전하게 연결하여, 
   개발자가 SQL 쿼리를 직접 작성하는 대신 간결하고 안전한 코드로 데이터베이스를 조작할 수 있도록 돕습니다.
 
+  영역	              이름 규칙 (Convention)	     예시
+  데이터베이스 (DB)	   snake_case, 복수형 선호	    users, products, order_items
+  Prisma 스키마	       PascalCase, 단수형 선호	    User, Product, OrderItem
+  위 내용은 table 명이고
+  DB에서 DB컬럼명은 snake_case, 단수형 추천함
+
+  model 정의할때 통상적 규칙?
+    1.기본키, 2.일반 속성들, 3.외래키, 4.관계필드 
 
 
 왜 백엔드 프레임워크 express 인지 
@@ -167,3 +176,31 @@
 왜 orm을 사용했는지 
 왜 orm 중 prisma를 선택했는지
 왜 id 값 autoincrement 방식 했는지 uuid 안하고
+
+
+ERD
+
+피터첸 표기법 0..N
+
+IE 표기법
+▽▽▽
+
+1. -○|<  동그라미, 실선, 까마귀발 Zero or One or Many
+2. -○<   동그라미, 까마귀발 Zero or Many
+3. -○|    동그라미, 실선 Zero or One
+4. -|<    실선, 까마귀발 One or Many
+5. -||     실선, 실선 One Only
+6. -<     까마귀발 Many
+7. -|      실선 One
+
+1번과 2번 같음  -○|<  ==  -○< : 0 <=
+4번과 6번 같음  -|<   ==  -<  : 1 <=
+5번과 7번 같음  -||   ==  -|  : 1
+
+명시적(Explicit) 표기 vs. 암묵적(Implicit) 표기
+
+< (까마귀 발)의 의미: 까마귀 발은 **'다수'(Many, N)**를 의미하며, N은 기본적으로 1을 포함하는 개념
+
+명시적 표기법은 1을 좀 더 명확히 표현하려고 까마귀발에 1을 의미하는 실선을 추가하는거임
+
+대부분의 현대적인 ERD도구와 실무에서는 암묵적 표기법을 더 선호함
