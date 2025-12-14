@@ -9,6 +9,19 @@ export interface User {
   name: string;
 }
 
+/**  
+ * 사장님
+ * @property {number} id - 사용자 고유 ID
+*/
+export interface Owner {
+  id: number;
+  name: string;
+}
+
+/**  
+ * 직원(알바)
+ * @property {number} id - 사용자 고유 ID
+*/
 export interface Staff {
   id: number;
   name: string;

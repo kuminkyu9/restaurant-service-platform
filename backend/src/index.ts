@@ -1,33 +1,19 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config'; 
+import app from '@/app'
 import { PrismaClient } from '@prisma/client';
 
-dotenv.config();
-
-const app = express();
 const prisma = new PrismaClient();
 
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+app.listen(PORT, async () => {
+  console.log(`Server running on [http://localhost:${PORT}]`);
 
-// 테스트 API: 유저 생성
-app.post('/test/users', async (req, res) => {
-  const { email, password, name } = req.body;
-  const user = await prisma.user.create({
-    data: { email, password, name },
-  });
-  res.json(user);
-});
-
-// 테스트 API: 모든 유저 조회
-app.get('/test/users', async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.json(users);
-});
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  // 데이터베이스 연결 확인 로그 (선택사항)
+  try {
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+  } catch (error) {
+    console.error('❌ Database connection failed', error);
+  }
 });

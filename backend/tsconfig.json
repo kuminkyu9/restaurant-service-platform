@@ -9,7 +9,9 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "types": ["node", "express", "cors"],
+    "baseUrl": "./",
     "paths": {
+      "@/*": ["src/*"],
       // 👇 output 경로를 @prisma/client라고 속이는 설정(schema.prisma의 generator client의 output 속성값)
       "@prisma/client": ["./node_modules/.prisma/client"]
     }
