@@ -204,3 +204,13 @@ IE 표기법
 명시적 표기법은 1을 좀 더 명확히 표현하려고 까마귀발에 1을 의미하는 실선을 추가하는거임
 
 대부분의 현대적인 ERD도구와 실무에서는 암묵적 표기법을 더 선호함
+
+
+
+
+종류	          규칙	                          예시  	                                              비고
+폴더	          camelCase (복수형 추천)	         routes/, controllers/, services/, middlewares/	      내용물이 여러 개니까 복수형
+소스 파일	      kebab-case	                    auth.ts, user.ts, auth-service.ts	                   간단명료하게
+클래스 파일	    PascalCase (대문자 시작)	       User.ts, Order.ts	                                   주로 모델(Model) 정의할 때
+설정 파일	      kebab-case 또는 소문자	         tsconfig.json, .env, readme.md	                       이건 툴들이 정해놓은 룰 따름
+변수,함수       cameCase

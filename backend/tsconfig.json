@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
     "rootDir": "./src",
     "outDir": "./dist",
@@ -10,6 +10,8 @@
     "moduleResolution": "node",
     "types": ["node", "express", "cors"],
     "baseUrl": "./",
+    "noImplicitAny": true,
+    "useUnknownInCatchVariables": true,
     "paths": {
       "@/*": ["src/*"],
       // 👇 output 경로를 @prisma/client라고 속이는 설정(schema.prisma의 generator client의 output 속성값)

@@ -1,16 +1,19 @@
 import express, { Express, Request, Response } from "express";
 import cors from 'cors';
 
+import authRoutes from '@/routes/auth-routes'; 
+
 
 // t
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '@/utils/prisma';
 
 
 const app: Express = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/auth', authRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('API Server is running');
