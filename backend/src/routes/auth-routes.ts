@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken'; // 추가됨
+import jwt from 'jsonwebtoken';
 import prisma from '@/utils/prisma';
 
 const router = Router();
@@ -86,7 +86,7 @@ router.post('/owner/login', async (req: Request, res: Response) => {
 
     // 4. JWT 토큰 발급 (Payload에 id, email, role 등을 담음)
     const token = jwt.sign(
-      { id: owner.id, email: owner.email, role: 'OWNER' }, 
+      { id: owner.id, email: owner.email, name: owner.name, role: 'OWNER' }, 
       JWT_SECRET, 
       { expiresIn: '12h' } // 토큰 유효기간: 12시간
     );

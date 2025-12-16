@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from "express";
 import cors from 'cors';
 
 import authRoutes from '@/routes/auth-routes'; 
+import restaurantRoutes from '@/routes/restaurant-routes';
 
 
 // t
@@ -13,12 +14,13 @@ const app: Express = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/auth', authRoutes);
-
 app.get('/', (req: Request, res: Response) => {
   res.send('API Server is running');
 })
 
+// API 라우트 연결
+app.use('/auth', authRoutes);
+app.use('/restaurants', restaurantRoutes);
 
 // t
 // POST /test/users (유저 생성)
