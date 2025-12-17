@@ -5,6 +5,7 @@ import authRoutes from '@/routes/auth-routes';
 import restaurantRoutes from '@/routes/restaurant-routes';
 import categoryRoutes from '@/routes/category-routes';
 import menuRoutes from '@/routes/menu-routes';
+import orderRoutes from '@/routes/order-routes';
 
 const app: Express = express();
 
@@ -16,9 +17,10 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 // API 라우트 연결
-app.use('/auth', authRoutes);
-app.use('/restaurants', restaurantRoutes);
-app.use('/restaurants/:restaurantId/categories', categoryRoutes);
-app.use('/restaurants/:restaurantId/categories/:categoryId/menus', menuRoutes);
+app.use('/auth', authRoutes); // 계정
+app.use('/restaurants', restaurantRoutes);  // 식당
+app.use('/restaurants/:restaurantId/categories', categoryRoutes); // 식당 카테고리
+app.use('/restaurants/:restaurantId/categories/:categoryId/menus', menuRoutes); // 식당 카테고리 메뉴
+app.use('/orders', orderRoutes); // 주문
 
 export default app;
