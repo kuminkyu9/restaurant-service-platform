@@ -8,7 +8,6 @@ const router = Router();
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
   try {
     // 1. 요청 바디에서 식당 정보 가져오기
-    // totalTable: 테이블 개수 (기본값 설정 가능하지만 여기선 필수로 받음)
     const { name, address, image, totalTable } = req.body;
 
     // 2. 필수 값 체크
@@ -74,6 +73,81 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get My Restaurants Error:', error);
     return res.status(500).json({ success: false, message: '서버 에러' });
+  }
+});
+
+// 식당 정보 수정 (PATCH /restaurants/:id)
+// PUT 대신 PATCH를 쓰는 이유: 정보의 일부(이름만, 주소만) 바꿀 수 있어서
+router.patch('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const restaurantId = Number(req.params.id); // URL 파라미터에서 식당 ID 가져오기
+    const ownerId = req.user?.id;
+    const { name, address, image, totalTable } = req.body;
+
+    // 1. 내 식당인지 확인 (권한 체크)
+    // Prisma의 updateMany를 쓰면 "조건에 맞는 것만 수정"하므로 
+    // 내 식당이 아니면 count가 0이 되어 안전하게 처리 가능하지만,
+    // 명확한 에러 메시지를 위해 findFirst로 먼저 찾습니다.
+    const existingRestaurant = await prisma.restaurant.findFirst({
+      where: { id: restaurantId, ownerId },
+    });
+
+    if (!existingRestaurant) {
+      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 수정 권한이 없습니다.' });
+    }
+
+    // 2. 업데이트 실행
+    const updatedRestaurant = await prisma.restaurant.update({
+      where: { id: restaurantId },
+      data: {
+        name,      // 값이 undefined면 Prisma가 알아서 무시함 (부분 수정 가능)
+        address,
+        image,
+        totalTable: totalTable ? Number(totalTable) : undefined,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: '식당 정보가 수정되었습니다.',
+      data: updatedRestaurant,
+    });
+
+  } catch (error) {
+    console.error('Update Restaurant Error:', error);
+    return res.status(500).json({ success: false, message: '식당 수정 중 오류 발생' });
+  }
+});
+
+// 식당 삭제 (DELETE /restaurants/:id)
+router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const restaurantId = Number(req.params.id);
+    const ownerId = req.user?.id;
+
+    // 1. 권한 체크 (내 식당인가?)
+    const existingRestaurant = await prisma.restaurant.findFirst({
+      where: { id: restaurantId, ownerId },
+    });
+
+    if (!existingRestaurant) {
+      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 삭제 권한이 없습니다.' });
+    }
+
+    // 2. 삭제 실행
+    // 주의: 식당을 지우면 연결된 메뉴, 주문 등은 어떻게 할지 DB 설계(Cascade)에 따름
+    await prisma.restaurant.delete({
+      where: { id: restaurantId },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: '식당이 삭제되었습니다.',
+    });
+
+  } catch (error) {
+    console.error('Delete Restaurant Error:', error);
+    return res.status(500).json({ success: false, message: '식당 삭제 중 오류 발생' });
   }
 });
 
