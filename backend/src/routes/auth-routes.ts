@@ -62,6 +62,58 @@ router.post('/owner/register', async (req: Request, res: Response) => {
   }
 });
 
+// 사장님 회원 탈퇴 (DELETE /auth/owner/withdraw)
+router.delete('/owner/withdraw', async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+     // 1. 입력값 검증
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: '이메일과 비밀번호를 모두 입력해주세요.' });
+    }
+
+    // 2. 사용자 찾기
+    const owner = await prisma.owner.findUnique({ where: { email } });
+    if (!owner) {
+      // 보안상 "없는 계정입니다"라고 알려주는 것보다 
+      // "정보가 일치하지 않습니다"라고 퉁치는 게 좋습니다. (계정 존재 여부 노출 방지)
+      return res.status(404).json({ success: false, message: '이메일 또는 비밀번호가 일치하지 않습니다.' });
+    }
+
+    // 3. 비밀번호 검증
+    const isPasswordValid = await bcrypt.compare(password, owner.password);
+    if (!isPasswordValid) {
+      return res.status(403).json({ success: false, message: '이메일 또는 비밀번호가 일치하지 않습니다.' });
+    }
+    
+    // 4. 탈퇴 처리
+    await prisma.$transaction(async (tx) => {
+      const randomString = Math.random().toString(36).substring(7);
+    
+      // 식당이나 주문을 삭제하면 데이터 무결성이 깨지거나 매출 기록이 날아감. 따라서 식당은 그대로 두고, 사장님 정보만 알 수 없게 하거나 삭제해야 함.
+      // 이메일/비번 등 개인정보는 날리고, ID만 남겨서 식당이 유지되게 함.
+      await tx.owner.update({
+        where: { id: owner.id },
+        data: {
+          email: `deleted_${owner.id}_${randomString}@withdraw.com`,
+          password: '',
+          name: '탈퇴한 사용자',
+        }
+      });
+      
+      // 나중에 여기에 "식당 상태 변경" 같은 로직 추가하기 좋음
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: '회원 탈퇴가 완료되었습니다.',
+    });
+  } catch (error) {
+    console.error('Withdraw Error:', error);
+    return res.status(500).json({ success: false, message: '탈퇴 처리 중 오류 발생' });
+  }
+});
+
 // 사장님 로그인 (POST /auth/owner/login)
 router.post('/owner/login', async (req: Request, res: Response) => {
   try {
