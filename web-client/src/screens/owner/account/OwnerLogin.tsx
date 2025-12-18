@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { useUserStore } from '@/store/useUserStore';
 import { useForm } from 'react-hook-form'; // react-hook-form 임포트
+import { useLogin } from '@/hooks/queries/useAuth';
+import Spinner from '@/screens/Spinner';
 
 // 폼 데이터 타입 정의
 interface LoginFormValues {
@@ -11,14 +12,12 @@ interface LoginFormValues {
 const OwnerLogin = () => {
   const navigate = useNavigate();
 
-  // Hook을 컴포넌트 최상단에 써야함
-  const setUser = useUserStore((state) => state.setUser);
-  // const user = useUserStore.getState().user; // 전역변수 지금 안써서 주석해놓음
-
   // useForm 훅 초기화
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>();
 
-  const signUp = () => {
+  const { mutate: login, isPending } = useLogin();
+
+  const goSignUpPage = () => {
     console.log('회원가입');
     navigate('/owner/register');
   }
@@ -27,22 +26,25 @@ const OwnerLogin = () => {
   const onSubmit = (data: LoginFormValues) => {
     console.log('Form Submitted:', data); // 이메일, 비밀번호가 data 객체에 담겨있음
 
-    // 실제 로그인 API 호출 로직이 들어갈 자리
-    // 예시: axios.post('/api/login', data)...
+    login(data);
+  }
 
-    setUser({
-      id: 123,
-      role: 'OWNER',
-      restaurantId: 456,
-      name: '테스트',
-    });
-
-    // 임시 로그인 및 화면이동
-    navigate('/owner/main');
+  const handleWithdrawalClick = () => {
+    console.log('회원탈퇴 이동');
+    navigate('/owner/withdraw');
   }
 
   return (
     <>
+      {isPending && (
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
+          <div className="flex flex-col items-center">
+            <Spinner /> 
+            <p className="mt-2 text-white font-medium">로그인 중입니다...</p>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm w-full max-w-md p-8">
           {/* Title */}
@@ -112,9 +114,15 @@ const OwnerLogin = () => {
           {/* Demo Account Info */}
           <div className="text-center">
             <p className="text-xs text-gray-400 pb-4">
-              데모 계정: <span className="text-gray-600">demo@example.com</span> / <span className="text-gray-600">Demo!P@ssword123</span>
+              데모 계정: <span className="text-gray-600">test@naver.com</span> / <span className="text-gray-600">qwe123!@#</span>
             </p>
-            <p className="text-xs text-gray-400">계정이 없으신가요? <span onClick={() => signUp()} className="cursor-pointer text-base text-orange-500 hover:underline ml-1 font-medium">회원가입</span></p>
+            <p className="text-xs text-gray-400">계정이 없으신가요? <span onClick={() => goSignUpPage()} className="cursor-pointer text-base text-orange-500 hover:underline ml-1 font-medium">회원가입</span></p>
+            <p
+              onClick={() => handleWithdrawalClick()}
+              className="text-sm text-gray-500 hover:text-gray-700 underline cursor-pointer transition-colors"
+            >
+              회원탈퇴
+            </p>
           </div>
         </div>
       </div>

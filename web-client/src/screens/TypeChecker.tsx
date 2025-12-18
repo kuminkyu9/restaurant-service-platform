@@ -1,19 +1,21 @@
 
 import { Navigate } from 'react-router-dom';
-import useAuth from '@/hooks/useAuth'; 
+// import useAuth from '@/hooks/useAuth'; 
 
 const TypeChecker = () => {
-  const { userType, loading } = useAuth();
+  // const { userType, loading } = useAuth();
+  const userType = 'owner'; // 현재 손님은 QR로 정해진 이동 경로가 있어서 웹 기본 페이지를 사장님 전용페이지
+  const loading = false;
 
   if (loading) {
     // 사용자 정보를 불러오는 동안 로딩 화면을 보여줍니다.
     return <div>사용자 타입 확인 중...</div>;
   }
 
-  if (userType === 'customer') {
-    // 손님이면 손님 전용 메인 페이지로 이동
-    return <Navigate to="/customer/main" replace />;
-  }
+  // if (userType === 'customer') {
+  //   // 손님이면 손님 전용 메인 페이지로 이동
+  //   return <Navigate to="/customer/main" replace />;
+  // }
 
   /* eslint-disable no-constant-condition */  // false 땜에 고정으로 해서 에러뜬거임 임시로 해논거
   // false 내용은 로그인 되어 있는지 확인하는거(token값?)

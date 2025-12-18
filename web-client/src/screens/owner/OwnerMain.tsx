@@ -1,13 +1,12 @@
-import { useUserStore } from '@/store/useUserStore';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
 import OwnerMainProfileDropDown from '@/screens/owner/profile/OwnerMainProfileDropDown';
 import RestaurantListItem from '@/screens/owner/RestaurantListItem';
 import { useNavigate } from 'react-router-dom';
+import { useLogout } from '@/hooks/queries/useAuth';
 
 const OwnerMain = () => {
   const navigate = useNavigate();
-  const user = useUserStore.getState().user; 
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const setAddModal = (val: boolean) => setIsAddModalOpen(val);
@@ -22,10 +21,11 @@ const OwnerMain = () => {
   //   console.log('설정');
   //   navigate('/owner/profile-main');
   // }
+
+  const handleLogout = useLogout();
   const logout = () => {
     console.log('로그아웃');
-    // navigate('owner/login');
-    navigate(-1);
+    handleLogout();
   }
 
   const [restaurantName, setRestaurantName] = useState('');
@@ -37,7 +37,6 @@ const OwnerMain = () => {
   }
 
   const addRestaurant = () => {
-    console.log(user);
     console.log(`식당이름: ${restaurantName}, 주소: ${address}`)
     resetModal();
     setAddModal(false);
