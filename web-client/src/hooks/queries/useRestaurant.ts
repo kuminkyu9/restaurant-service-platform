@@ -3,17 +3,7 @@ import { api } from '@/api/axios';
 import { AxiosError } from 'axios';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
-
-interface ApiErrorResponse {
-  message: string;
-  success: boolean;
-}
-
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  // status?: number 등 다른 필드
-}
+import type { ApiErrorResponse, ApiResponse } from '@restaurant/shared-types/api';
 
 // 내 식당 조회
 export const useMyRestaurant = () => {
@@ -57,7 +47,7 @@ export const useAddRestaurant = () => {
       return response.data;
     },
     onSuccess: () => {
-      alert('식당이 등록 성공');
+      alert('식당 등록 성공');
       
       // 데이터 최신화
       queryClient.invalidateQueries({ queryKey: ['restaurants', 'my'] });
@@ -65,29 +55,6 @@ export const useAddRestaurant = () => {
     onError: (error: AxiosError<ApiErrorResponse>) => {
       console.error('식당 등록 실패:', error);
       const message = error.response?.data?.message || '식당 등록에 실패했습니다.';
-      alert(message);
-    },
-  });
-};
-
-// 식당 삭제
-export const useDeleteRestaurant = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: number) => {
-      const response = await api.delete(`/restaurants/${data}`);
-      return response.data;
-    },
-    onSuccess: () => {
-      alert('식당 삭제 완료');
-      
-      // 데이터 최신화
-      queryClient.invalidateQueries({ queryKey: ['restaurants', 'my'] });
-    },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
-      console.error('식당 삭제 실패:', error);
-      const message = error.response?.data?.message || '식당 삭제에 실패했습니다.';
       alert(message);
     },
   });
@@ -115,6 +82,29 @@ export const useEditRestaurant = () => {
     onError: (error: AxiosError<ApiErrorResponse>) => {
       console.error('식당 수정 실패:', error);
       const message = error.response?.data?.message || '식당 수정에 실패했습니다.';
+      alert(message);
+    },
+  });
+};
+
+// 식당 삭제
+export const useDeleteRestaurant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: number) => {
+      const response = await api.delete(`/restaurants/${data}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      alert('식당 삭제 완료');
+      
+      // 데이터 최신화
+      queryClient.invalidateQueries({ queryKey: ['restaurants', 'my'] });
+    },
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      console.error('식당 삭제 실패:', error);
+      const message = error.response?.data?.message || '식당 삭제에 실패했습니다.';
       alert(message);
     },
   });

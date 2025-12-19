@@ -35,7 +35,10 @@ export const appRoutes: RouteObject[] = [
       // 부모 경로 '/'에 합쳐져서 '/profile'이 됌
       {path: 'owner/main', element: <OwnerMain />, },
       {path: 'owner/profile-main', element: <ProfileMain />, },
-      {path: 'owner/main/restaurant-main', element: <OwnerRestaurantMain />, },
+      
+      {path: 'owner/main/restaurant-main/:restaurantId', element: <OwnerRestaurantMain />, },
+      // {path: 'owner/main/restaurant-main', element: <OwnerRestaurantMain />, },
+
       {path: 'owner/main/restaurant/category-main', element: <CategoryMain />, },
     ],
   },

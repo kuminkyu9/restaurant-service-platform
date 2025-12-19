@@ -1,32 +1,86 @@
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { QrCode } from 'lucide-react';
 import Modal from '@/components/Modal';
 import QrModal from '@/screens/owner/restaurant/QrModal';
 import CategoryListItem from '@/screens/owner/restaurant/CategoryListItem';
+import type { Category, Restaurant } from '@restaurant/shared-types/restaurant';
+import { useOwnerRestaurantCategory, useAddCategory, useEditCategory, useDeleteCategory } from '@/hooks/queries/useCategory';
+import CategorySkeleton from '@/components/skeletons/CategorySkeleton';
+import Spinner from '@/screens/Spinner';
 
 const RestaurantMain = () => {
   const navigate = useNavigate();
 
+  const { restaurantId } = useParams<{ restaurantId: string }>();
+  // 경로에서 받아온거임
+  const location = useLocation();
+  const restaurant = location.state.restaurant as Restaurant;
+
+  const skeletons = [1, 2, 3, 4];
+  const { data: categoryList = [], isLoading } = useOwnerRestaurantCategory(restaurantId || '');
+  const { mutate: handleAddCategory, isPending: isAddPending } = useAddCategory();
+  const { mutate: handleEditCategory, isPending: isEditPending } = useEditCategory();
+  const { mutate: handleDeleteCategory, isPending: isDeletePending } = useDeleteCategory();
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const setAddModal = (val: boolean) => setIsAddModalOpen(val);
+  const [isAddModalEditMode, setIsAddModalEditMode] = useState(false);
+  const setAddModalEditMode = (val: boolean) => setIsAddModalEditMode(val);
+
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const [categoryName, setCategory] = useState('');
 
   const addCategory = () => {
+    if(categoryName == '') return;
     console.log('카테고리 이름: ',categoryName);
+
+    if(isAddModalEditMode && isAddModalOpen) {
+      if(editingCategory != null) {
+        handleEditCategory({
+          categoryId: editingCategory.id,
+          restaurantId: editingCategory.restaurantId,
+          data: {
+            name: categoryName,
+          }
+        });
+        setEditingCategory(null);
+      }
+    }else {
+      handleAddCategory({
+        restaurantId: restaurant.id,
+        data: {
+          name: categoryName
+        }
+      });
+    }
+
     setCategory('');
+    if(isAddModalEditMode) setAddModalEditMode(false);
     setAddModal(false);
   }
 
-  const moveCategory = (index: number) => {
-    console.log('index: '+index+', 해당 카테고리 이동');
-    navigate('/owner/main/restaurant/category-main');
+  const openEditCategory = (data: Category) => {
+    console.log(data);
+    console.log('해당 카테고리 수정 모달 열기');
+    setEditingCategory(data);
+    setCategory(data.name);
+    setAddModalEditMode(true);
+    setAddModal(true);
   }
 
-  const delCategory = (index: number) => {
-    console.log('index: '+index+', 해당 카테고리 삭제');
+  const delCategory = (data: Category) => {
+    console.log(data);
+    console.log('해당 카테고리 삭제');
+    handleDeleteCategory({categoryId: data.id, restaurantId: data.restaurantId});
+  }
+
+  const moveCategory = (data: Category) => {
+    console.log(data);
+    console.log('해당 카테고리 이동');
+    navigate('/owner/main/restaurant/category-main');
   }
 
   // 모달의 열림/닫힘 상태 관리
@@ -61,7 +115,7 @@ const RestaurantMain = () => {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 text-base">맛있는 한식당</span>
+              <span className="font-bold text-gray-900 text-base">{restaurant.name}</span>
               <span className="text-xs text-gray-500">카테고리 관리</span>
             </div>
           </div>
@@ -84,21 +138,53 @@ const RestaurantMain = () => {
       </header>
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6 space-y-4">
-        {/* Category Card 1 */}
-        <CategoryListItem categoryName={'사이드 메뉴'} menu={2} 
-          movePath={()=> moveCategory(1)} 
-          del={() => delCategory(1)} 
-        />
+        {isLoading ? (
+          <div className='flex flex-col animate-fade-in-custom'>
+            {skeletons.map((item) => (
+              // **가장 바깥쪽 요소에 고유한 key prop을 추가합니다.**
+              <CategorySkeleton key={item} />
+            ))}
+          </div>
+        ) : Array.isArray(categoryList) && categoryList?.length === 0 ? (
+          <div className="flex items-center justify-center bg-gray-30 animate-fade-in-custom">
+            <div className="text-center p-6 bg-white shadow-xl rounded-3xl">
+              <h3 className="text-lg font-semibold text-gray-900">등록된 카테고리가 없습니다.</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                서비스 이용을 위해 해당 식당의 새로운 카테고리를 추가해주세요.
+              </p>
+              <div className="mt-0">
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col animate-fade-in-custom">
+            {categoryList.map((item, idx) => (
+              <div key={idx}>
+                <CategoryListItem categoryName={item.name} menu={item.menus.length} 
+                  edit={() => openEditCategory(item)} 
+                  isEditPending={isEditPending}
+                  del={() => delCategory(item)}
+                  isDeletePending={isDeletePending}
+                  movePath={()=> moveCategory(item)} 
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* 카테고리 추가 모달    모달 위치: 최상위 div 닫기 직전 */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => {
+          if(isAddModalEditMode) {
+            setEditingCategory(null);
+            setAddModalEditMode(false);
+          }
           setAddModal(false);
           setCategory('');
         }}
-        title="새 카테고리 추가"
+        title={isAddModalEditMode&&isAddModalOpen ? "카테고리 수정" : "새 카테고리 추가"}
       >
         {/* 모달 내용 */}
         <div className="space-y-4">
@@ -118,7 +204,14 @@ const RestaurantMain = () => {
             onClick={addCategory} 
             className="cursor-pointer w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors"
           >
-            추가하기
+            {
+              isAddModalEditMode&&isAddModalOpen ? ( isEditPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
+                : '수정하기'
+              ) 
+              : (isAddPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>추가중</span></div> 
+                : '추가하기'
+              )
+              }
           </button>
         </div>
       </Modal>

@@ -1,15 +1,15 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import type { User } from '@restaurant/shared-types/user'; 
+// import type { User } from '@restaurant/shared-types/user'; 
 
 
 const ProtectedLayout = () => {
   // 변수를 전역변수나 상태관리로 어캐 해서 여기저기서 쓸 수 있게 해야됌 중요!
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const user: User = {
-    id: 123, // num
-    name: '테스트',
-  }
+  // const user: User = {
+  //   id: 123, // num
+  //   name: '테스트',
+  // }
 
   const checkUserLoginStatus = () => {
     return true;  // user 타입 가변적으로 하게 넣어야댐

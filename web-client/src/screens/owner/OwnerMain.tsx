@@ -4,7 +4,7 @@ import OwnerMainProfileDropDown from '@/screens/owner/profile/OwnerMainProfileDr
 import RestaurantListItem from '@/screens/owner/RestaurantListItem';
 import { useNavigate } from 'react-router-dom';
 import { useLogout } from '@/hooks/queries/useAuth';
-import { useMyRestaurant, } from '@/hooks/queries/useRestaurant';
+import { useMyRestaurant } from '@/hooks/queries/useRestaurant';
 // import { useMyRestaurant, type Restaurant } from '@/hooks/queries/useRestaurant';
 import { useAddRestaurant, useDeleteRestaurant, useEditRestaurant } from '@/hooks/queries/useRestaurant';
 import Spinner from '@/screens/Spinner';
@@ -12,19 +12,16 @@ import RestaurantSkeleton from '@/components/skeletons/RestaurantSkeleton';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
 
 const OwnerMain = () => {
-  const skeletons = [1, 2, 3, 4];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: restaurantList = [], isLoading, isError, error } = useMyRestaurant();
-
-  const { mutate: handleAddRestaurant, isPending: isAddPending } = useAddRestaurant();
-  const { mutate: handleDeleteRestaurant, isPending: isDeletePending } = useDeleteRestaurant();
-  const { mutate: handleEditRestaurant, isPending: isEditPending } = useEditRestaurant();
-
   const navigate = useNavigate();
+
+  const skeletons = [1, 2, 3, 4];
+  const { data: restaurantList = [], isLoading } = useMyRestaurant();
+  const { mutate: handleAddRestaurant, isPending: isAddPending } = useAddRestaurant();
+  const { mutate: handleEditRestaurant, isPending: isEditPending } = useEditRestaurant();
+  const { mutate: handleDeleteRestaurant, isPending: isDeletePending } = useDeleteRestaurant();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const setAddModal = (val: boolean) => setIsAddModalOpen(val);
-
   const [isAddModalEditMode, setIsAddModalEditMode] = useState(false);
   const setAddModalEditMode = (val: boolean) => setIsAddModalEditMode(val);
 
@@ -65,7 +62,8 @@ const OwnerMain = () => {
     if(restaurantName != '' && address != '' && (totalTable!=null && totalTable>0)) {
       console.log(`식당이름: ${restaurantName}, 주소: ${address}, totalTable: ${totalTable}, image: ${image}`,);
       // return;
-      if(isAddModalEditMode && isAddModalOpen && editingRestaurant != null) {
+      if(isAddModalEditMode && isAddModalOpen) {
+        if(editingRestaurant == null) return;
         handleEditRestaurant({
           id: editingRestaurant.id,
           data: {
@@ -125,7 +123,10 @@ const OwnerMain = () => {
 
     console.log(data);
     console.log('해당 식당 이동');
-    navigate('/owner/main/restaurant-main');
+    // navigate('/owner/main/restaurant-main');
+    navigate(`/owner/main/restaurant-main/${data.id}`, {
+      state: {restaurant: data}
+    });
   }
 
   return (
@@ -168,7 +169,6 @@ const OwnerMain = () => {
         </header>
         {/* Main Content */}
         <main className="max-w-5xl mx-auto p-6">
-          {/* Restaurant Card   List 식으로 해서 index 값 넣어야댐 */}
           {isLoading ? (
             <div className='flex flex-col animate-fade-in-custom'>
               {skeletons.map((item) => (
@@ -193,10 +193,10 @@ const OwnerMain = () => {
                 <div key={idx}>
                   <RestaurantListItem 
                     img={item.image} name={item.name} address={item.address} 
-                    edit={() => openEditRestaurantModal(item)} 
+                    edit={() => openEditRestaurantModal(item)}
+                    isEditPending={isEditPending}
                     del={() => delRestaurant(item)} 
                     isDeletePending={isDeletePending}
-                    isEditPending={isEditPending}
                     movePath={()=> moveRestaurant(item)} 
                   />
                 </div>
@@ -302,7 +302,7 @@ const OwnerMain = () => {
               className="cursor-pointer w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors"
             >
               {
-              isAddModalEditMode&&isAddModalOpen ? ( isDeletePending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
+              isAddModalEditMode&&isAddModalOpen ? ( isEditPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
                 : '수정하기'
               ) 
               : (isAddPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>추가중</span></div> 

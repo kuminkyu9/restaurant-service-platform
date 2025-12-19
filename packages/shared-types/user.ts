@@ -15,7 +15,10 @@ export interface User {
 */
 export interface Owner {
   id: number;
+  email: string;
+  password: string;
   name: string;
+  createdAt: string;
 }
 
 /**  
@@ -24,5 +27,8 @@ export interface Owner {
 */
 export interface Staff {
   id: number;
+  email: string;
+  password: string;
   name: string;
+  createdAt: string;
 }

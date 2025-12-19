@@ -6,13 +6,13 @@ interface itemProps {
   name: string;
   address: string;
   edit: () => void;
+  isEditPending: boolean;
   del: () => void;
   isDeletePending: boolean;
-  isEditPending: boolean;
   movePath: () => void;
 }
 
-const RestaurantListItem = ({ name, address, edit, del, isDeletePending, isEditPending, movePath }: itemProps) => {
+const RestaurantListItem = ({ name, address, edit, isEditPending, del, isDeletePending, movePath }: itemProps) => {
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // **이벤트 버블링 중단!**

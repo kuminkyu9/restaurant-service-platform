@@ -1,4 +1,4 @@
-const RestaurantSkeleton = () => {
+const CategorySkeleton = () => {
   return (
     <div className="mb-4 h-[90px] flex items-center justify-between p-3 bg-white rounded-lg w-full mx-auto border border-gray-200">
       {/* 왼쪽 아이콘 및 텍스트 영역 */}
@@ -8,9 +8,9 @@ const RestaurantSkeleton = () => {
         
         {/* 텍스트 Placeholder */}
         <div className="flex flex-col space-y-2">
-          {/* 식당 이름 Placeholder */}
+          {/* 사이드 이름 Placeholder */}
           <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
-          {/* 주소 Placeholder */}
+          {/* 메뉴개수 Placeholder */}
           <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
         </div>
       </div>
@@ -28,4 +28,4 @@ const RestaurantSkeleton = () => {
   );
 };
 
-export default RestaurantSkeleton;
+export default CategorySkeleton;

@@ -1,4 +1,3 @@
-
 export interface Restaurant {
   id: number;
   name: string;
@@ -8,3 +7,20 @@ export interface Restaurant {
   totalTable: number;
   createdAt: string
 }
+
+export interface Category {
+  id: number;
+  name: string;
+  restaurantId: number,
+  menus: menu[]
+}
+
+export interface menu {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  image?: string;
+  categoryId: number;
+}
+
