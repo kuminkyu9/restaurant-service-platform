@@ -61,7 +61,8 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
 
     const myRestaurants = await prisma.restaurant.findMany({
       where: { ownerId },
-      orderBy: { createdAt: 'desc' } // 최신순 정렬
+      orderBy: { createdAt: 'desc' }, // 최신순 정렬
+      // include: { categories: true } // 상점 불러올 때 카테고리도 같이 보여줌
     });
 
     return res.status(200).json({

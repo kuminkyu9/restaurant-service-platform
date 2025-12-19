@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // 401 에러 시 Zustand의 logout 액션 실행 -> 상태 초기화 및 UI 반영
       useAuthStore.getState().logout();
-      window.location.href = '/login'; // 강제 리다이렉트
+      window.location.href = '/owner/login'; // 강제 리다이렉트
     }
     return Promise.reject(error);
   }
