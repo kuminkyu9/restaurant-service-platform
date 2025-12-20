@@ -5,6 +5,26 @@ import { authenticateToken } from '../middlewares/authenticate-token';
 // mergeParams: true 필수 (부모 URL의 :restaurantId, :categoryId 가져오기 위해)
 const router = Router({ mergeParams: true });
 
+// 메뉴 목록 조회 (GET /restaurants/:restaurantId/categories/:categoryId/menus)
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const { categoryId } = req.params;
+
+    const menus = await prisma.menu.findMany({
+      where: { categoryId: Number(categoryId) },
+      orderBy: { createdAt: 'desc' }, // 최신순 정렬
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: menus
+    });
+  } catch (error) {
+    console.error('Get menus Error:', error);
+    return res.status(500).json({ success: false, message: '서버 에러' });
+  }
+});
+
 // 메뉴 추가 (POST /restaurants/:restaurantId/categories/:categoryId/menus)
 router.post('/', authenticateToken, async (req: Request, res: Response) => {
   try {

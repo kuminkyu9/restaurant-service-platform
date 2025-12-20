@@ -4,7 +4,7 @@ import { AxiosError } from 'axios';
 import type { Category } from '@restaurant/shared-types/restaurant'; 
 import type { ApiErrorResponse, ApiResponse } from '@restaurant/shared-types/api';
 
-// 내 식당 조회
+// 카테고리 조회
 export const useOwnerRestaurantCategory = (restaurantId: string | number) => {
 
   return useQuery<Category[], AxiosError<ApiErrorResponse>>({

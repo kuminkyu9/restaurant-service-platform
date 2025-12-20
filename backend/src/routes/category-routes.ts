@@ -14,11 +14,11 @@ router.get('/', async (req: Request, res: Response) => {
 
     const categories = await prisma.category.findMany({
       where: { restaurantId: Number(restaurantId) },
-      include: {   // 카테고리 불러올 때 메뉴도 같이 보여줌 
-        menus: {
-          orderBy: { createdAt: 'desc' }
-        }
-      },
+      // include: {   // 카테고리 불러올 때 메뉴도 같이 보여줌 
+      //   menus: {
+      //     orderBy: { createdAt: 'desc' }
+      //   }
+      // },
       orderBy: { createdAt: 'desc' }, // 최신순 정렬
     });
 
