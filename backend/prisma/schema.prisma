@@ -99,8 +99,9 @@ model WorkLog {
 
 // 음식 유형
 model Category {
-  id   Int    @id @default(autoincrement())
-  name String
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
 
   restaurantId Int        @map("restaurant_id")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade) // 식당 삭제되면 연계 삭제
@@ -112,11 +113,12 @@ model Category {
 
 // 메뉴(음식)
 model Menu {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   price       Int
   description String
   image       String? // 이미지 파일을 DB에 직접 저장하지 않고, AWS S3 같은 객체 스토리지 서비스에 저장 후 접근 가능한 URL만 저장 (스토리지 부하 및 성능 최적화 목적)
+  createdAt   DateTime @default(now()) @map("created_at")
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // 음식 유형 삭제시 연계 삭제
@@ -146,9 +148,10 @@ model Order {
 }
 
 model OrderItem {
-  id       Int @id @default(autoincrement())
-  quantity Int // 몇 개 시켰는지
-  price    Int // 주문 시점의 가격 (메뉴 가격이 바뀌어도 기록 유지용)
+  id        Int      @id @default(autoincrement())
+  quantity  Int // 몇 개 시켰는지
+  price     Int // 주문 시점의 가격 (메뉴 가격이 바뀌어도 기록 유지용)
+  createdAt DateTime @default(now()) @map("created_at")
 
   orderId Int   @map("order_id")
   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade) // 주문 삭제시 상세 내역도 연계 삭제
