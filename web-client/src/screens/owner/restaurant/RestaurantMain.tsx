@@ -24,8 +24,8 @@ const RestaurantMain = () => {
   const { mutate: handleEditCategory, isPending: isEditPending } = useEditCategory();
   const { mutate: handleDeleteCategory, isPending: isDeletePending } = useDeleteCategory();
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const setAddModal = (val: boolean) => setIsAddModalOpen(val);
+  const [isAddModal, setIsAddModal] = useState(false);
+  const setAddModal = (val: boolean) => setIsAddModal(val);
   const [isAddModalEditMode, setIsAddModalEditMode] = useState(false);
   const setAddModalEditMode = (val: boolean) => setIsAddModalEditMode(val);
 
@@ -33,11 +33,15 @@ const RestaurantMain = () => {
 
   const [categoryName, setCategory] = useState('');
 
+  const [isQrTableNumberModal, setIsQrTableNumberModal] = useState(false);
+  const setQrTableNumberModal = (val: boolean) => setIsQrTableNumberModal(val);
+  const [qrTableNumber, setQrTableNumber] = useState<number | null>(null);
+
   const addCategory = () => {
     if(categoryName == '') return;
     console.log('카테고리 이름: ',categoryName);
 
-    if(isAddModalEditMode && isAddModalOpen) {
+    if(isAddModalEditMode && isAddModal) {
       if(editingCategory != null) {
         handleEditCategory({
           categoryId: editingCategory.id,
@@ -87,7 +91,7 @@ const RestaurantMain = () => {
   const [isOpen, setIsOpen] = useState(false);
   // 애니메이션 종료 후 완전히 숨기기 위한 별도 상태 (선택 사항)
   const [isRendered, setIsRendered] = useState(false);
-  const openModal = () => {
+  const openQRModal = () => {
     setIsRendered(true); // 렌더링 시작
     // 다음 틱에서 애니메이션 시작 (transition 적용을 위해 필요)
     setTimeout(() => setIsOpen(true), 10); 
@@ -121,12 +125,16 @@ const RestaurantMain = () => {
           </div>
           {/* **QR 생성 버튼** */}
           <button
-            onClick={() => openModal()}
+            onClick={() => {
+              setQrTableNumber(null);
+              setQrTableNumberModal(true);
+            }}
+            // onClick={() => openQRModal()}
             className="cursor-pointer flex items-center space-x-2 px-3 py-1.5 border border-solid border-gray-400 text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-200 focus:ring-opacity-50 transition duration-150 ease-in-out"
           >
             {/* QrCode 아이콘 사용, Tailwind text-white 클래스로 색상 설정 */}
             <QrCode className="w-4 h-4" />
-            <span>QR 생성</span>
+            <span>테이블 QR 생성</span>
           </button>
         </div>
         <button onClick={() => setAddModal(true)} className="cursor-pointer flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
@@ -175,7 +183,7 @@ const RestaurantMain = () => {
 
       {/* 카테고리 추가 모달    모달 위치: 최상위 div 닫기 직전 */}
       <Modal
-        isOpen={isAddModalOpen}
+        isOpen={isAddModal}
         onClose={() => {
           if(isAddModalEditMode) {
             setEditingCategory(null);
@@ -184,7 +192,7 @@ const RestaurantMain = () => {
           setAddModal(false);
           setCategory('');
         }}
-        title={isAddModalEditMode&&isAddModalOpen ? "카테고리 수정" : "새 카테고리 추가"}
+        title={isAddModalEditMode&&isAddModal ? "카테고리 수정" : "새 카테고리 추가"}
       >
         {/* 모달 내용 */}
         <div className="space-y-4">
@@ -205,7 +213,7 @@ const RestaurantMain = () => {
             className="cursor-pointer w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors"
           >
             {
-              isAddModalEditMode&&isAddModalOpen ? ( isEditPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
+              isAddModalEditMode&&isAddModal ? ( isEditPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
                 : '수정하기'
               ) 
               : (isAddPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>추가중</span></div> 
@@ -216,8 +224,66 @@ const RestaurantMain = () => {
         </div>
       </Modal>
 
+      <Modal
+        isOpen={isQrTableNumberModal}
+        onClose={() => {
+          setQrTableNumberModal(false);
+          setQrTableNumber(null);
+        }}
+        title='테이블 번호 입력'
+      >
+        {/* 테이블 QR 생성: 테이블 번호 선택 모달 내용 */}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              테이블 번호(최소: 1, 최대: {restaurant.totalTable})
+            </label>
+            <input 
+              type="number" 
+              placeholder="생성될 QR의 테이블 번호를 입력하세요"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-400"
+              value={qrTableNumber ?? ''}
+              onChange={(e) => {
+                // 1. 숫자(0-9)가 아닌 모든 문자를 제거 (한글 및 다른 기호 방지)
+                const filteredValue = e.target.value.replace(/[^0-9]/g, ''); 
+
+                // 2. 숫자로 변환
+                const numberValue = Number(filteredValue);
+
+                // 3. 유효성 검사 및 상태 업데이트
+                if (filteredValue === '') {
+                  // 입력이 비어있으면 null로 설정
+                  setQrTableNumber(null);
+                } else if (numberValue === 0) {
+                  // 0을 입력하면 1로 강제 설정
+                  setQrTableNumber(1);
+                } else if (numberValue > restaurant.totalTable) {
+                  setQrTableNumber(restaurant.totalTable);
+                } else {
+                  // 그 외의 유효한 숫자 입력 시 상태 업데이트
+                  setQrTableNumber(numberValue);
+                }
+              }}
+              min="1"
+              max={restaurant.totalTable}
+              style={{ imeMode: "disabled" }}
+            />
+          </div>
+          <button 
+            onClick={
+              () => {
+                if(qrTableNumber == null) return;
+                setQrTableNumberModal(false);
+                openQRModal();
+              }
+            } 
+            className="cursor-pointer w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors"
+          >생성하기</button>
+        </div>
+      </Modal>
+
       {/* 바텀 모달 컨테이너 */}
-      <QrModal isOpen={isOpen} isRendered={isRendered} closeModal={() => closeModal()} />
+      <QrModal isOpen={isOpen} isRendered={isRendered} restaurant={restaurant} qrTableNumber={qrTableNumber} closeModal={() => closeModal()} />
     </div>
   );
 };

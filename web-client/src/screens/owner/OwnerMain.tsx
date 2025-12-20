@@ -59,7 +59,7 @@ const OwnerMain = () => {
   }
 
   const addRestaurant = () => {
-    if(restaurantName != '' && address != '' && (totalTable!=null && totalTable>0)) {
+    if(restaurantName !== '' && address !== '' && (totalTable !== null && totalTable > 0)) {
       console.log(`식당이름: ${restaurantName}, 주소: ${address}, totalTable: ${totalTable}, image: ${image}`,);
       // return;
       if(isAddModalEditMode && isAddModalOpen) {
