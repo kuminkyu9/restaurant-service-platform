@@ -44,8 +44,8 @@ const RestaurantMain = () => {
     if(isAddModalEditMode && isAddModal) {
       if(editingCategory != null) {
         handleEditCategory({
-          categoryId: editingCategory.id,
           restaurantId: editingCategory.restaurantId,
+          categoryId: editingCategory.id,
           data: {
             name: categoryName,
           }
@@ -78,13 +78,15 @@ const RestaurantMain = () => {
   const delCategory = (data: Category) => {
     console.log(data);
     console.log('해당 카테고리 삭제');
-    handleDeleteCategory({categoryId: data.id, restaurantId: data.restaurantId});
+    handleDeleteCategory({restaurantId: data.restaurantId, categoryId: data.id});
   }
 
   const moveCategory = (data: Category) => {
     console.log(data);
     console.log('해당 카테고리 이동');
-    navigate('/owner/main/restaurant/category-main');
+    navigate(`/owner/main/restaurant/${data.restaurantId}/category/${data.id}`, {
+      state: {category: data}
+    });
   }
 
   // 모달의 열림/닫힘 상태 관리
@@ -168,7 +170,9 @@ const RestaurantMain = () => {
           <div className="flex flex-col animate-fade-in-custom">
             {categoryList.map((item, idx) => (
               <div key={idx}>
-                <CategoryListItem categoryName={item.name} menu={item.menus.length} 
+                <CategoryListItem 
+                  categoryName={item.name} 
+                  // menu={item.menus.length} 
                   edit={() => openEditCategory(item)} 
                   isEditPending={isEditPending}
                   del={() => delCategory(item)}
@@ -219,7 +223,7 @@ const RestaurantMain = () => {
               : (isAddPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>추가중</span></div> 
                 : '추가하기'
               )
-              }
+            }
           </button>
         </div>
       </Modal>

@@ -123,8 +123,7 @@ const OwnerMain = () => {
 
     console.log(data);
     console.log('해당 식당 이동');
-    // navigate('/owner/main/restaurant-main');
-    navigate(`/owner/main/restaurant-main/${data.id}`, {
+    navigate(`/owner/main/restaurant/${data.id}`, {
       state: {restaurant: data}
     });
   }

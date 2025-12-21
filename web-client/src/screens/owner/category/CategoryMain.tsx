@@ -1,16 +1,36 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import MenuListItem from '@/screens/owner/category/MenuListItem';
 import Modal from '@/components/Modal';
+import type { Category, Menu } from '@restaurant/shared-types/restaurant';
+import { useOwnerRestaurantCategoryMenu, useAddMenu, useEditMenu, useDeleteMenu } from '@/hooks/queries/useMenu';
+import MenuSkeleton from '@/components/skeletons/MenuSkeleton';
+import Spinner from '@/screens/Spinner';
 
 const CategoryMain = () => {
   const navigate = useNavigate();
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const setAddModal = (val: boolean) => setIsAddModalOpen(val);
+  const { restaurantId, categoryId } = useParams<{ restaurantId: string, categoryId: string }>();
+  // 경로에서 받아온거임
+  const location = useLocation();
+  const category = location.state.category as Category;
+
+    const skeletons = [1, 2, 3, 4];
+    const { data: menuList = [], isLoading } = useOwnerRestaurantCategoryMenu(restaurantId || '', categoryId || '');
+    const { mutate: handleAddMenu, isPending: isAddPending } = useAddMenu();
+    const { mutate: handleEditMenu, isPending: isEditPending } = useEditMenu();
+    const { mutate: handleDeleteMenu, isPending: isDeletePending } = useDeleteMenu();
+
+  const [isAddModal, setIsAddModal] = useState(false);
+  const setAddModal = (val: boolean) => setIsAddModal(val);
+  const [isAddModalEditMode, setIsAddModalEditMode] = useState(false);
+  const setAddModalEditMode = (val: boolean) => setIsAddModalEditMode(val);
+
+  const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
   
   const [menuName, setMenuName] = useState('');
-  const [price, setPrice] = useState(1000);
+  // const [price, setPrice] = useState(1000);
+  const [price, setPrice] = useState<number | null>(1000);
   const [content, setContent] = useState('');
 
   const resetModal = () => {
@@ -20,17 +40,57 @@ const CategoryMain = () => {
   }
 
   const addMenu = () => {
+    if(price == null || price == 0) return;
     console.log(`메뉴 추가 { 메뉴: ${menuName}, 가격: ${price}, 설명: ${content}`);
+
+    if(isAddModalEditMode && isAddModal) {
+      if(editingMenu != null) {
+        handleEditMenu({
+          categoryId: editingMenu.categoryId,
+          restaurantId: category.restaurantId,
+          menuId: editingMenu.id,
+          data: {
+            name: menuName,
+            price: price,
+            description: content,
+            // image: formData.image || undefined, // 빈 문자열이면 undefined로
+          }
+        });
+        setEditingMenu(null);
+      }
+    }else {
+      handleAddMenu({
+        restaurantId: category.restaurantId,
+        categoryId: category.id,
+        data: {
+          name: menuName,
+          price: price,
+          description: content,
+          // image: formData.image || undefined, // 빈 문자열이면 undefined로
+        }
+      });
+    }
+
     resetModal();
+    if(isAddModalEditMode) setAddModalEditMode(false);
     setAddModal(false);
   }
 
-  const editMenu = (index: number) => {
-    console.log('index: '+index+', 메뉴 수정');
+  const editMenu = (data: Menu) => {
+    console.log(data);
+    console.log('메뉴 수정');
+    setEditingMenu(data);
+    setMenuName(data.name);
+    setPrice(data.price);
+    setContent(data.description);
+    setAddModalEditMode(true);
+    setAddModal(true);
   }
 
-  const delMenu = (index: number) => {
-    console.log('index: '+index+', 해당 메뉴 삭제');
+  const delMenu = (data: Menu) => {
+    console.log(data);
+    console.log('해당 메뉴 삭제');
+    handleDeleteMenu({restaurantId: category.restaurantId, categoryId: data.categoryId, menuId: data.id});
   }
 
   return (
@@ -50,7 +110,7 @@ const CategoryMain = () => {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 text-base">선택한 카테고리 이름</span>
+              <span className="font-bold text-gray-900 text-base">{category.name}</span>
               <span className="text-xs text-gray-500">메뉴 관리</span>
             </div>
           </div>
@@ -66,21 +126,55 @@ const CategoryMain = () => {
 
       {/* Main Content */}
       <main className="max-w-5xl mx-auto p-6 space-y-4">
-        {/* Menu Item 1 */}
-        <MenuListItem menuName={"김치찌개"} content={"얼큰한 김치찌개"} price={9000}
-          edit={()=> editMenu(1)} 
-          del={() => delMenu(1)} 
-        />
+        {isLoading ? (
+          <div className='flex flex-col animate-fade-in-custom'>
+            {skeletons.map((item) => (
+              // **가장 바깥쪽 요소에 고유한 key prop을 추가합니다.**
+              <MenuSkeleton key={item} />
+            ))}
+          </div>
+        ) : Array.isArray(menuList) && menuList?.length === 0 ? (
+          <div className="flex items-center justify-center bg-gray-30 animate-fade-in-custom">
+            <div className="text-center p-6 bg-white shadow-xl rounded-3xl">
+              <h3 className="text-lg font-semibold text-gray-900">등록된 메뉴가 없습니다.</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                서비스 이용을 위해 해당 식당의 새로운 메뉴를 추가해주세요.
+              </p>
+              <div className="mt-0">
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col animate-fade-in-custom">
+            {menuList.map((item, idx) => (
+              <div key={idx}>
+                <MenuListItem 
+                  menuName={item.name} 
+                  content={item.description} 
+                  price={item.price}
+                  edit={()=> editMenu(item)}
+                  isEditPending={isEditPending}
+                  del={() => delMenu(item)} 
+                  isDeletePending={isDeletePending}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       {/* 메뉴 추가 모달 */}
       <Modal
-        isOpen={isAddModalOpen}
+        isOpen={isAddModal}
         onClose={() => {
+          if(isAddModalEditMode) {
+            setEditingMenu(null);
+            setAddModalEditMode(false);
+          }
           setAddModal(false);
           resetModal();
         }}
-        title="새 메뉴 추가"
+        title={isAddModalEditMode&&isAddModal ? "메뉴 수정" : "새 메뉴 추가"}
       >
         {/* 모달 내용 */}
         <div className="space-y-4">
@@ -104,14 +198,24 @@ const CategoryMain = () => {
               type="number" 
               placeholder="가격을 입력하세요"
               className="w-full px-4 py-2.5 bg-gray-50 border border-transparent rounded-lg text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent placeholder-gray-400 transition-colors"
-              value={price}
+              value={price ?? ''}
               onChange={(e) => {
-                const newValue = Number(e.target.value);
-                
-                if (!isNaN(newValue) && newValue >= 0) {
-                  setPrice(newValue);
-                } else if (e.target.value === '') {
-                  setPrice(0);
+                // 1. 숫자(0-9)가 아닌 모든 문자를 제거 (한글 및 다른 기호 방지)
+                const filteredValue = e.target.value.replace(/[^0-9]/g, ''); 
+
+                // 2. 숫자로 변환
+                const numberValue = Number(filteredValue);
+
+                // 3. 유효성 검사 및 상태 업데이트
+                if (filteredValue === '') {
+                  // 입력이 비어있으면 null로 설정
+                  setPrice(null);
+                } else if (numberValue === 0) {
+                  // 0을 입력하면 1로 강제 설정
+                  setPrice(100);
+                } else {
+                  // 그 외의 유효한 숫자 입력 시 상태 업데이트
+                  setPrice(numberValue);
                 }
               }}
               min={0}
@@ -134,7 +238,14 @@ const CategoryMain = () => {
             onClick={addMenu} 
             className="cursor-pointer w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors"
           >
-            추가하기
+            {
+              isAddModalEditMode&&isAddModal ? ( isEditPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>수정중</span></div> 
+                : '수정하기'
+              ) 
+              : (isAddPending ? <div className='flex justify-center items-center'><Spinner size='sm'/><span className='ml-4'>추가중</span></div> 
+                : '추가하기'
+              )
+            }
           </button>
         </div>
       </Modal>

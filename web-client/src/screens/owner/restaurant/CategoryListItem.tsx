@@ -3,7 +3,7 @@ import Spinner from '@/screens/Spinner';
 
 interface itemProps {
   categoryName: string;
-  menu: number;
+  // menu: number;
   edit: () => void;
   isEditPending: boolean;
   del: () => void;
@@ -11,7 +11,8 @@ interface itemProps {
   movePath: () => void;
 }
 
-const CategoryListItem = ({ categoryName, menu, edit, isEditPending, del, isDeletePending, movePath }: itemProps) => {
+const CategoryListItem = ({ categoryName, edit, isEditPending, del, isDeletePending, movePath }: itemProps) => {
+// const CategoryListItem = ({ categoryName, menu, edit, isEditPending, del, isDeletePending, movePath }: itemProps) => {
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // **이벤트 버블링 중단!**
@@ -27,11 +28,11 @@ const CategoryListItem = ({ categoryName, menu, edit, isEditPending, del, isDele
     <div onClick={() => movePath()} className="mb-4 bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer group">
       <div>
         <h3 className="text-gray-900 font-medium text-base mb-1">{categoryName}</h3>
-        <p className="text-gray-400 text-xs">메뉴 {menu}개</p>
+        {/* <p className="text-gray-400 text-xs">메뉴 {menu}개</p> */}
       </div>
       <div className="flex items-center gap-4">
         {
-          (isDeletePending || isEditPending) ? <Spinner size='sm' /> 
+          (isEditPending || isDeletePending) ? <Spinner size='sm' /> 
           : <>
             <button onClick={handleEditClick} className="cursor-pointer text-gray-400 hover:text-blue-300 p-2 rounded-full hover:bg-blue-50 transition-colors">
               <Cog className="h-5 w-5" />

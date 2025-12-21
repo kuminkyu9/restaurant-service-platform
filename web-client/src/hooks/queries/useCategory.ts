@@ -61,8 +61,8 @@ export const useAddCategory = () => {
 
 // 카테고리 수정
 interface EditCategoryRequest {
-  categoryId: number;
   restaurantId: number;
+  categoryId: number;
   data: {name: string;}
 }
 export const useEditCategory = () => {
@@ -89,8 +89,8 @@ export const useEditCategory = () => {
 
 // 카테고리 삭제
 interface DeleteCategoryRequest {
-  categoryId: number;
   restaurantId: number;
+  categoryId: number;
 }
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();
