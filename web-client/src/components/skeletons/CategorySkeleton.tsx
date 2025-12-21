@@ -1,6 +1,6 @@
 const CategorySkeleton = () => {
   return (
-    <div className="mb-4 h-[90px] flex items-center justify-between p-3 bg-white rounded-lg w-full mx-auto border border-gray-200">
+    <div className="mb-4 h-[78px] flex items-center justify-between p-3 bg-white rounded-lg w-full mx-auto border border-gray-200">
       {/* 왼쪽 아이콘 및 텍스트 영역 */}
       <div className="flex items-center space-x-4">
         {/* 아이콘 Placeholder (사각형) */}
