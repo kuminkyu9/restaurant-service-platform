@@ -1,19 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+import type { Owner } from '@restaurant/shared-types/user'; 
 
 interface AuthState {
   token: string | null;
-  user: User | null;
+  user: Owner | null;
   isLoggedIn: boolean;
   
   // Actions
-  login: (token: string, user: User) => void;
+  login: (token: string, user: Owner) => void;
   logout: () => void;
 }
 

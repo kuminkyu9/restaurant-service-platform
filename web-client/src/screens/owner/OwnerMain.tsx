@@ -10,9 +10,12 @@ import { useAddRestaurant, useDeleteRestaurant, useEditRestaurant } from '@/hook
 import Spinner from '@/screens/Spinner';
 import RestaurantSkeleton from '@/components/skeletons/RestaurantSkeleton';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
+import { useAuthStore } from '@/store/useAuthStore';
 
 const OwnerMain = () => {
   const navigate = useNavigate();
+
+  const user = useAuthStore((state) => state.user);
 
   const skeletons = [1, 2, 3, 4];
   const { data: restaurantList = [], isLoading } = useMyRestaurant();
@@ -159,10 +162,10 @@ const OwnerMain = () => {
           {/* 프로필 */}
           <div className="flex items-start gap-3">
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-bold text-gray-900">김민수</div>
+              <div className="text-sm font-bold text-gray-900">{user?.name}</div>
             </div>
             <div onClick={() => setProfileDropDown(true)} className="cursor-pointer w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-              김
+              {user?.name.charAt(0)}
             </div>
           </div>
         </header>

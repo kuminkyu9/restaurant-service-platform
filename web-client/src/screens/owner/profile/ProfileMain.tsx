@@ -1,6 +1,9 @@
+import { useAuthStore } from '@/store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileMain = () => {
+  const user = useAuthStore((state) => state.user);
+  
   const navigate = useNavigate();
 
   const cancel = () => {
@@ -34,11 +37,11 @@ const ProfileMain = () => {
           {/* Profile Image & Name Section */}
           <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-100">
             <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              김
+              {user?.name.charAt(0)}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">김민수</h2>
-              <p className="text-gray-500">홀 서빙</p>
+              <h2 className="text-xl font-bold text-gray-900">{user?.name}</h2>
+              <p className="text-gray-500">사장님</p>
             </div>
           </div>
 
@@ -51,13 +54,13 @@ const ProfileMain = () => {
               </label>
               <input 
                 type="text" 
-                defaultValue="김민수"
+                defaultValue={user?.name}
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
             </div>
 
             {/* Role Input */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 직책
               </label>
@@ -66,10 +69,10 @@ const ProfileMain = () => {
                 defaultValue="홀 서빙"
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
-            </div>
+            </div> */}
 
             {/* Contact Input */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 연락처
               </label>
@@ -78,7 +81,7 @@ const ProfileMain = () => {
                 defaultValue="010-1234-5678"
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
-            </div>
+            </div> */}
 
             {/* Email Input */}
             <div>
@@ -87,7 +90,7 @@ const ProfileMain = () => {
               </label>
               <input 
                 type="email" 
-                defaultValue="demo@example.com"
+                defaultValue={user?.email}
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
               <p className="mt-1.5 text-xs text-gray-400">로그인 계정으로 사용됩니다</p>
