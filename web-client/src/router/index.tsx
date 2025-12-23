@@ -19,10 +19,9 @@ import ProtectedLayout from '@/router/ProtectedLayout';
 // RouteObject 배열을 선언
 // RouteObject 타입은 react-router-dom에서 제공
 export const appRoutes: RouteObject[] = [
-  {path: '/', element: <TypeChecker />, },
+  {path: '/', element: <TypeChecker />, },  // 현재 qr로만 손님 페이지 진입 가능
 
-  {path: '/customer/main', element: <CustomerMain />, },
-  // {path: '/customer/main?restaurantId=123', element: <CustomerMain />, },
+  {path: '/customer/main', element: <CustomerMain />, },  // /customer/main?restaurantId=2&qrTableNumber=3
   
   {path: 'owner/login', element: <OwnerLogin />, },
   {path: 'owner/register', element: <RegisterForm />, },

@@ -8,17 +8,37 @@ import { authenticateToken } from '../middlewares/authenticate-token';
 const router = Router({ mergeParams: true });
 
 // 카테고리 목록 조회 (GET /restaurants/:restaurantId/categories)
+// 카테고리 목록 조회: 손님용 (GET /restaurants/:restaurantId/categories?tableNumber=5)
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
+    const { tableNumber } = req.query;
+
+    if(tableNumber) {
+      const restaurant = await prisma.restaurant.findUnique({
+        where: { id: Number(restaurantId) },
+        select: { totalTable: true } // totalTable 필드만 선택해서 최적화
+      });
+      if (!restaurant) {
+        return res.status(404).json({ success: false, message: '식당을 찾을 수 없습니다.' });
+      }
+
+      const requestedTable = Number(tableNumber);
+      if (requestedTable < 1 || requestedTable > restaurant.totalTable) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `유효하지 않은 테이블 번호입니다. (1~${restaurant.totalTable} 사이여야 함)` 
+        });
+      }
+    }
 
     const categories = await prisma.category.findMany({
       where: { restaurantId: Number(restaurantId) },
-      // include: {   // 카테고리 불러올 때 메뉴도 같이 보여줌 
-      //   menus: {
-      //     orderBy: { createdAt: 'desc' }
-      //   }
-      // },
+      include: tableNumber ? {   // 카테고리 불러올 때 메뉴도 같이 보여줌 
+        menus: {
+          orderBy: { createdAt: 'desc' }
+        }
+      } : null,
       orderBy: { createdAt: 'desc' }, // 최신순 정렬
     });
 
