@@ -189,4 +189,25 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
   }
 });
 
+// (손님용) 현재 식당 조회 (GET /restaurants/:id)
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const restaurantId = Number(req.params.id);
+
+    const restaurant = await prisma.restaurant.findUnique({
+        where: { id: Number(restaurantId) },
+      });
+
+    return res.status(200).json({
+      success: true,
+      message: '식당 정보 조회 성공',
+      data: restaurant,
+    });
+
+  } catch (error) {
+    console.error('Get My Restaurants Error:', error);
+    return res.status(500).json({ success: false, message: '서버 에러' });
+  }
+});
+
 export default router;
