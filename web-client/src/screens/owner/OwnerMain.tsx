@@ -73,6 +73,7 @@ const OwnerMain = () => {
             name: restaurantName,
             address: address,
             totalTable: totalTable,
+            image: image || undefined,
             // image: formData.image || undefined, // 빈 문자열이면 undefined로
           }
         });
@@ -84,6 +85,7 @@ const OwnerMain = () => {
           name: restaurantName,
           address: address,
           totalTable: totalTable,
+          image: image || undefined,
           // image: formData.image || undefined, // 빈 문자열이면 undefined로
         });
         resetModal();
@@ -91,6 +93,20 @@ const OwnerMain = () => {
       }
     }
   }
+
+  const convertUrlToFile = async (imageUrl: string, fileName: string = "saved_image.jpg"): Promise<File> => {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const file = new File([blob], fileName, { type: blob.type });
+    return file;
+  };
+  const handleImageConversion = async (data: Restaurant) => {
+    if (data.image != null) {
+      const savedImg = await convertUrlToFile(data.image);
+      console.log(savedImg)
+      setImage(savedImg);
+    }
+  };
 
   // const editRestaurant = (data: Restaurant) => {
   const openEditRestaurantModal = (data: Restaurant) => {
@@ -102,10 +118,13 @@ const OwnerMain = () => {
     setRestaurantName(data.name);
     setAddress(data.address);
     setTotalTable(data.totalTable);
+    handleImageConversion(data);
+    
 
     setAddModal(true);
     setAddModalEditMode(true);
   }
+  
 
   const delRestaurant = (data: Restaurant) => {
     console.log(data);
@@ -298,6 +317,17 @@ const OwnerMain = () => {
                     bg-gray-50 border border-gray-200 rounded-md cursor-pointer"
                 />
               </div>
+              { 
+                image == null || editingRestaurant?.image == null ? <></>
+                : <div className='mt-4 '>
+                  <p className='text-sm font-semibold text-gray-700 mb-1.5 '>수정할 이미지</p>
+                  <div className='bg-orange-100 w-full h-64 flex items-center justify-center overflow-hidden rounded-md'>  
+                    <img src={editingRestaurant?.image} alt='수정할 이미지'
+                      className='max-w-full max-h-full object-contain'
+                    ></img>
+                  </div>
+                </div>
+              }
             </div>
             <button 
               onClick={addRestaurant} 

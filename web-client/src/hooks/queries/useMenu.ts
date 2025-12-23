@@ -38,7 +38,7 @@ interface AddMenuRequest {
     name: string;
     price: number;
     description: string;
-    image?: string;
+    image?: File;
   }
 }
 export const useAddMenu = () => {
@@ -46,7 +46,9 @@ export const useAddMenu = () => {
 
   return useMutation({
     mutationFn: async (data: AddMenuRequest) => {
-      const response = await api.post(`/restaurants/${data.restaurantId}/categories/${data.categoryId}/menus`, data.data);
+      const response = await api.post(`/restaurants/${data.restaurantId}/categories/${data.categoryId}/menus`, data.data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data;
     },
     onSuccess: (_data, variables) => {
@@ -73,7 +75,7 @@ interface EditMenuRequest {
     name: string;
     price: number;
     description: string;
-    image?: string; 
+    image?: File; 
   }
 }
 export const useEditMenu = () => {
@@ -81,7 +83,9 @@ export const useEditMenu = () => {
 
   return useMutation({
     mutationFn: async (data: EditMenuRequest) => {
-      const response = await api.patch(`/restaurants/${data.restaurantId}/categories/${data.categoryId}/menus/${data.menuId}`, data.data);
+      const response = await api.patch(`/restaurants/${data.restaurantId}/categories/${data.categoryId}/menus/${data.menuId}`, data.data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data;
     },
     onSuccess: (_data, variables) => {

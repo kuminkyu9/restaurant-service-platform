@@ -36,14 +36,16 @@ interface AddRestaurantRequest {
   name: string;
   address: string;
   totalTable: number;
-  image?: string;     // 선택 사항
+  image?: File;     // 선택 사항
 }
 export const useAddRestaurant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: AddRestaurantRequest) => {
-      const response = await api.post('/restaurants', data);
+      const response = await api.post('/restaurants', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -70,7 +72,9 @@ export const useEditRestaurant = () => {
 
   return useMutation({
     mutationFn: async (data: EditRestaurantRequest) => {
-      const response = await api.patch(`/restaurants/${data.id}`, data.data);
+      const response = await api.patch(`/restaurants/${data.id}`, data.data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data;
     },
     onSuccess: () => {

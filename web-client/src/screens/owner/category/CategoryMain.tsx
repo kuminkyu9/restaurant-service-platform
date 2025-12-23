@@ -32,9 +32,11 @@ const CategoryMain = () => {
   // const [price, setPrice] = useState(1000);
   const [price, setPrice] = useState<number | null>(1000);
   const [content, setContent] = useState('');
+  const [image, setImage] = useState<File | null>(null);
 
   const resetModal = () => {
     setMenuName('');
+    setImage(null);
     setPrice(1000);
     setContent('');
   }
@@ -42,7 +44,6 @@ const CategoryMain = () => {
   const addMenu = () => {
     if(price == null || price == 0) return;
     console.log(`메뉴 추가 { 메뉴: ${menuName}, 가격: ${price}, 설명: ${content}`);
-
     if(isAddModalEditMode && isAddModal) {
       if(editingMenu != null) {
         handleEditMenu({
@@ -53,6 +54,7 @@ const CategoryMain = () => {
             name: menuName,
             price: price,
             description: content,
+            image: image || undefined,
             // image: formData.image || undefined, // 빈 문자열이면 undefined로
           }
         });
@@ -66,23 +68,40 @@ const CategoryMain = () => {
           name: menuName,
           price: price,
           description: content,
+          image: image || undefined,
           // image: formData.image || undefined, // 빈 문자열이면 undefined로
         }
       });
     }
-
     resetModal();
     if(isAddModalEditMode) setAddModalEditMode(false);
     setAddModal(false);
   }
 
+  const convertUrlToFile = async (imageUrl: string, fileName: string = "saved_image.jpg"): Promise<File> => {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const file = new File([blob], fileName, { type: blob.type });
+    return file;
+  };
+  const handleImageConversion = async (data: Menu) => {
+    if (data.image != null) {
+      const savedImg = await convertUrlToFile(data.image);
+      console.log(savedImg)
+      setImage(savedImg);
+    }
+  };
+
   const editMenu = (data: Menu) => {
     console.log(data);
     console.log('메뉴 수정');
     setEditingMenu(data);
+
     setMenuName(data.name);
     setPrice(data.price);
     setContent(data.description);
+    handleImageConversion(data);
+
     setAddModalEditMode(true);
     setAddModal(true);
   }
@@ -149,6 +168,7 @@ const CategoryMain = () => {
             {menuList.map((item, idx) => (
               <div key={idx}>
                 <MenuListItem 
+                  img={item.image}
                   menuName={item.name} 
                   content={item.description} 
                   price={item.price}
@@ -233,6 +253,35 @@ const CategoryMain = () => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              메뉴 이미지 (선택)
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                className="block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-l-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-gray-200 file:text-gray-700
+                  hover:file:bg-gray-300
+                  bg-gray-50 border border-gray-200 rounded-md cursor-pointer"
+              />
+            </div>
+            { 
+              image == null || editingMenu?.image == null ? <></>
+              : <div className='mt-4 '>
+                <p className='text-sm font-semibold text-gray-700 mb-1.5 '>수정할 이미지</p>
+                <div className='bg-orange-100 w-full h-64 flex items-center justify-center overflow-hidden rounded-md'>  
+                  <img src={editingMenu?.image} alt='수정할 이미지'
+                    className='max-w-full max-h-full object-contain'
+                  ></img>
+                </div>
+              </div>
+            }
           </div>
           <button 
             onClick={addMenu} 

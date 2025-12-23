@@ -1,9 +1,14 @@
 import { Router, Request, Response } from 'express';
 import prisma from '@/utils/prisma';
 import { authenticateToken } from '../middlewares/authenticate-token';
+import s3 from '@/utils/s3-client';
+import upload from '@/middlewares/upload';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 // mergeParams: true 필수 (부모 URL의 :restaurantId, :categoryId 가져오기 위해)
 const router = Router({ mergeParams: true });
+
+const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
 // 메뉴 목록 조회 (GET /restaurants/:restaurantId/categories/:categoryId/menus)
 router.get('/', async (req: Request, res: Response) => {
@@ -26,12 +31,13 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // 메뉴 추가 (POST /restaurants/:restaurantId/categories/:categoryId/menus)
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
+router.post('/', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     // 1. URL 파라미터 가져오기 (app.ts에서 정의한 이름과 일치 필요)
     const { restaurantId, categoryId } = req.params;
-    const { name, price, description, image } = req.body;
+    const { name, price, description } = req.body;
     const ownerId = req.user?.id;
+    const file = req.file;
 
     // 2. 필수 값 체크
     if (!name || price === undefined) {
@@ -52,13 +58,26 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: '메뉴 추가 권한이 없거나 카테고리가 존재하지 않습니다.' });
     }
 
+    let imageUrl: string | null = null;
+    if (file) {
+      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,              // 메모리에 올라온 Buffer
+        ContentType: file.mimetype,     // image/png 등
+      });
+      await s3.send(command); // S3 업로드[web:59][web:68]
+      imageUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
     // 4. 메뉴 생성
     const newMenu = await prisma.menu.create({
       data: {
         name,
         price: Number(price),
         description: description || '',
-        image: image,
+        image: imageUrl,
         categoryId: Number(categoryId),
       },
     });
@@ -76,11 +95,12 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // 메뉴 수정 (PATCH /restaurants/:restaurantId/categories/:categoryId/menus/:menuId)
-router.patch('/:menuId', authenticateToken, async (req: Request, res: Response) => {
+router.patch('/:menuId', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const { restaurantId, categoryId, menuId } = req.params;
     const { name, price, description } = req.body;
     const ownerId = req.user?.id;
+    const file = req.file;
 
     // 1. 권한 체크 (내 식당 -> 내 카테고리 -> 내 메뉴 인지 확인)
     // 단순히 menuId만으로 수정하면, 남의 식당 메뉴를 수정할 수도 있으므로 철저히 검증
@@ -99,6 +119,20 @@ router.patch('/:menuId', authenticateToken, async (req: Request, res: Response) 
       return res.status(403).json({ success: false, message: '수정 권한이 없거나 메뉴를 찾을 수 없습니다.' });
     }
 
+    let image: string | null = null;
+    // 이미지 파일이 있을 경우 S3 업로드
+    if (file) {
+      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,              // 메모리에 올라온 Buffer
+        ContentType: file.mimetype,     // image/png 등
+      });
+      await s3.send(command); // S3 업로드[web:59][web:68]
+      image = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
     // 2. 메뉴 수정
     const updatedMenu = await prisma.menu.update({
       where: { id: Number(menuId) },
@@ -106,6 +140,7 @@ router.patch('/:menuId', authenticateToken, async (req: Request, res: Response) 
         name,
         price: price !== undefined ? Number(price) : undefined,
         description,
+        image,
       },
     });
 

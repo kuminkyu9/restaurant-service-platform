@@ -1,16 +1,22 @@
 import { Router, Request, Response } from 'express';
 import prisma from '@/utils/prisma';
 import { authenticateToken } from '../middlewares/authenticate-token';
+import s3 from '@/utils/s3-client';
+import upload from '@/middlewares/upload';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 const router = Router();
 
-// 식당 추가 (POST /restaurants)
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    // 1. 요청 바디에서 식당 정보 가져오기
-    const { name, address, image, totalTable } = req.body;
+const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
-    // 2. 필수 값 체크
+// 식당 추가 (POST /restaurants) // 프론트에서 name="image" 파일로 보낸다고 가정
+router.post('/', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
+  try {
+    // 요청 바디에서 식당 정보 가져오기
+    const { name, address, totalTable } = req.body;
+    const file = req.file; // multer가 채워줌
+
+    // 필수 값 체크
     if (!name || !address || !totalTable) {
       return res.status(400).json({ 
         success: false, 
@@ -18,25 +24,42 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
-    // 3. 토큰에서 사장님 ID 추출 (미들웨어가 심어준 값)
+    // 토큰에서 사장님 ID 추출 (미들웨어가 심어준 값)
     const ownerId = req.user?.id;
-
     if (!ownerId) {
       return res.status(401).json({ success: false, message: '사용자 정보를 찾을 수 없습니다.' });
     }
 
-    // 4. DB에 식당 생성
+    let imageUrl: string | null = null;
+    // 이미지 파일이 있을 경우 S3 업로드
+    if (file) {
+      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
+
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,              // 메모리에 올라온 Buffer
+        ContentType: file.mimetype,     // image/png 등
+      });
+
+      await s3.send(command); // S3 업로드[web:59][web:68]
+
+      imageUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
+    // DB에 식당 생성
     const newRestaurant = await prisma.restaurant.create({
       data: {
         name,
         address,
-        image: image || null, // 이미지는 선택 사항
+        image: imageUrl, // 이미지는 선택 사항
+        // image: image || null, // 이미지는 선택 사항
         totalTable: Number(totalTable), // 혹시 문자열로 올 수 있으니 숫자 변환
         ownerId: ownerId, // 로그인한 사장님 ID로 연결
       },
     });
 
-    // 5. 성공 응답
+    // 성공 응답
     return res.status(201).json({
       success: true,
       message: '식당이 성공적으로 등록되었습니다.',
@@ -79,25 +102,39 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
 
 // 식당 정보 수정 (PATCH /restaurants/:id)
 // PUT 대신 PATCH를 쓰는 이유: 정보의 일부(이름만, 주소만) 바꿀 수 있어서
-router.patch('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.patch('/:id', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id); // URL 파라미터에서 식당 ID 가져오기
     const ownerId = req.user?.id;
-    const { name, address, image, totalTable } = req.body;
+    const { name, address, totalTable } = req.body;
+    const file = req.file;
 
-    // 1. 내 식당인지 확인 (권한 체크)
+    // 내 식당인지 확인 (권한 체크)
     // Prisma의 updateMany를 쓰면 "조건에 맞는 것만 수정"하므로 
     // 내 식당이 아니면 count가 0이 되어 안전하게 처리 가능하지만,
-    // 명확한 에러 메시지를 위해 findFirst로 먼저 찾습니다.
+    // 명확한 에러 메시지를 위해 findFirst로 먼저 찾음
     const existingRestaurant = await prisma.restaurant.findFirst({
       where: { id: restaurantId, ownerId },
     });
-
     if (!existingRestaurant) {
       return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 수정 권한이 없습니다.' });
     }
 
-    // 2. 업데이트 실행
+    let image: string | null = null;
+    // 이미지 파일이 있을 경우 S3 업로드
+    if (file) {
+      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
+      const command = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: file.buffer,              // 메모리에 올라온 Buffer
+        ContentType: file.mimetype,     // image/png 등
+      });
+      await s3.send(command); // S3 업로드[web:59][web:68]
+      image = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+    }
+
+    // 업데이트 실행
     const updatedRestaurant = await prisma.restaurant.update({
       where: { id: restaurantId },
       data: {
