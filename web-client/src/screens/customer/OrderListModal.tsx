@@ -18,6 +18,14 @@ const OrderListModal = ({ isOpen, isRendered, closeModal }: itemProps) => {
       { name: "떡볶이", count: 1, price: 7000 },
       { name: "만두", count: 1, price: 6000 },
       { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
+      { name: "소주", count: 1, price: 5000 },
       { name: "팥빙수", count: 1, price: 8000 },
     ],
     totalPrice: 75000
@@ -34,9 +42,9 @@ const OrderListModal = ({ isOpen, isRendered, closeModal }: itemProps) => {
             }`}
             onClick={closeModal}
           ></div>
-          {/* 실제 모달 콘텐츠 영역 - 높이(h-[80%]) 등을 조정하여 더 넓게 쓸 수 있습니다 */}
+          {/* 실제 모달 콘텐츠 영역 - 높이(max-h-[80vh]) 등을 조정*/}
           <div 
-            className={`relative bg-gray-50 w-full h-[50%] rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col
+            className={`relative bg-gray-50 w-full max-h-[70vh] rounded-t-2xl shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col
             ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
           >
             {/* 1. 모달 헤더 (고정) */}

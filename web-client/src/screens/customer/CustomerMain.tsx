@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 // import Spinner from '@/screens/Spinner';
 import CategoryTab from '@/screens/customer/CategoryTab';
 import MenuListItem from '@/screens/customer/MenuListItem';
-import OrderListModal from './OrderListModal';
+import OrderListModal from '@/screens/customer/OrderListModal';
+import ShoppingCartModal, { type OrderItem } from '@/screens/customer/ShoppingCartModal';
 import type { CategoryInMenu, Menu, Restaurant } from '@restaurant/shared-types/restaurant';
 import { useCustomerRestaurant } from '@/hooks/queries/useRestaurant';
 import { useCustomerRestaurantCategory } from '@/hooks/queries/useCategory';
@@ -58,25 +59,41 @@ const CustomerMain = () => {
     console.log(menuList);
   }
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [isRendered, setIsRendered] = useState(false);
-  const openModal = () => {
-    setIsRendered(true);
-    setTimeout(() => setIsOpen(true), 10); 
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
+  const [isOrderRendered, setIsOrderRendered] = useState(false);
+  const openOrderModal = () => {
+    setIsOrderRendered(true);
+    setTimeout(() => setIsOrderOpen(true), 10); 
   };
-  const closeModal = () => {
-    setIsOpen(false); // 애니메이션 역재생 시작
-    setTimeout(() => setIsRendered(false), 300); 
+  const closeOrderModal = () => {
+    setIsOrderOpen(false); // 애니메이션 역재생 시작
+    setTimeout(() => setIsOrderRendered(false), 300); 
   };
+
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCartRendered, setIsCartRendered] = useState(false);
+  const openCartModal = () => {
+    setIsCartRendered(true);
+    setTimeout(() => setIsCartOpen(true), 10); 
+  };
+  const closeCartModal = () => {
+    setIsCartOpen(false); // 애니메이션 역재생 시작
+    setTimeout(() => setIsCartRendered(false), 300); 
+  };
+  const onOrder = (data: OrderItem[]) => {  // 장바구니 > 주문하기
+    console.log(data);
+    console.log('주문하기');
+    setIsCartOpen(false);
+  }
 
   const moveMenuDetail = (data: Menu) => {
     console.log(data);
     console.log('디테일 페이지로 이동');
   }
 
-  // --- [핵심] 장바구니 상태 관리 ---
+  // --- [핵심] 장바구니 상태 관리 ---(사전 형식으로 검색하는거임 array 처럼 list는 아니고)
   // Key: MenuId, Value: 수량
-  const [cart, setCart] = useState<Record<number, number>>({});
+  const [cart, setCart] = useState<Record<number, number>>({}); 
 
   // 수량 변경 핸들러
   const updateQuantity = (menuId: number, delta: number) => {
@@ -133,7 +150,7 @@ const CustomerMain = () => {
                 <p className="text-xs text-gray-500">테이블 {qrTableNumber}번</p>
               </div>
             </div>
-            <button onClick={() => openModal()} className="cursor-pointer hover:bg-gray-100 flex items-center gap-1 text-gray-500 text-sm border border-gray-200 px-2 py-1 rounded">
+            <button onClick={() => openOrderModal()} className="cursor-pointer hover:bg-gray-100 flex items-center gap-1 text-gray-500 text-sm border border-gray-200 px-2 py-1 rounded">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
@@ -178,7 +195,7 @@ const CustomerMain = () => {
             <span className='font-bold'>장바구니</span>
           </div>
         </div> : <div 
-          onClick={openModal}
+          onClick={openCartModal}
           className="cursor-pointer hover:bg-orange-500 fixed bottom-4 left-4 right-4 bg-orange-400 text-white p-4 z-40 rounded-xl shadow-lg flex justify-between items-center transition-all animate-fade-in-up"
         >
           <div className="flex items-center gap-3">
@@ -192,8 +209,15 @@ const CustomerMain = () => {
           </div>
         </div>
       }
-      {/* 바텀 모달 컨테이너 */}
-      <OrderListModal isOpen={isOpen} isRendered={isRendered} closeModal={() => closeModal()} />
+      {/* (주문내역) 바텀 모달 컨테이너 */}
+      <OrderListModal isOpen={isOrderOpen} isRendered={isOrderRendered} closeModal={() => closeOrderModal()} />
+      {/* (장바구니) 바텀 모달 컨테이너 */}
+      <ShoppingCartModal isOpen={isCartOpen} isRendered={isCartRendered} closeModal={() => closeCartModal()} 
+        cart={cart}
+        allMenus={allMenus}
+        updateQuantity={updateQuantity}
+        onOrder={onOrder}
+      />
     </div>
   );
 };
