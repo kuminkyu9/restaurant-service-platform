@@ -12,6 +12,7 @@ import CategoryTabSkeleton from '@/components/skeletons/customer/CategoryTabSkel
 import MenuListSkeleton from '@/components/skeletons/customer/MenuListSkeleton';
 import CartButtonSkeleton from '@/components/skeletons/customer/CartButtonSkeleton';
 import RestaurantHeaderSkeleton from '@/components/skeletons/customer/RestaurantHeaderSkeleton';
+import { isEmpty } from '@restaurant/shared-types/utils';
 
 const CustomerMain = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const CustomerMain = () => {
   }
 
   const { data: restaurant = {} as Restaurant, isLoading: isRestaurantLoading } = useCustomerRestaurant(restaurantId ?? 0);
-  const { data: categoryList = [], isLoading: isMenuLoading } = useCustomerRestaurantCategory(restaurantId ?? 0, qrTableNumber ?? 0);
+  const { data: categoryList = [], isLoading: isMenuLoading, isError: categoryError } = useCustomerRestaurantCategory(restaurantId ?? 0, qrTableNumber ?? 0);
 
   const allMenus = categoryList.flatMap(category => category.menus);
 
@@ -132,7 +133,7 @@ const CustomerMain = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 relative pb-20"> {/* pb-20 ensures content isn't hidden behind fixed cart */}
+    <div className={isEmpty(menuList) || categoryError ? "pointer-events-none select-none" : "min-h-screen bg-gray-50 relative pb-20"}> {/* pb-20 ensures content isn't hidden behind fixed cart */}
       {/* Sticky Header */}
       <header className="bg-white sticky top-0 z-30 shadow-sm">
         {/* Restaurant Info */}
@@ -168,6 +169,33 @@ const CustomerMain = () => {
       <main className="p-4 space-y-4">
         {
           isRestaurantLoading || isMenuLoading ? <MenuListSkeleton /> 
+          : isEmpty(menuList) || categoryError ? <div className="flex items-center justify-center bg-gray-100">
+            <div className="text-center p-8 bg-white shadow-xl rounded-lg">
+              <svg
+                className="mx-auto h-12 w-12 text-yellow-500"
+                xmlns="www.w3.org"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                { 
+                  categoryError ? <div><p>주소를 임의로 수정하신 것 같아요!</p><p>올바른 주소가 아니에요</p></div> 
+                  : '**사장님이 아직 식당 설정을 하지 않으셨어요**'
+                }
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                서비스 이용을 위해 관리자에게 문의해 주세요.
+              </p>
+            </div>
+          </div> 
           : (activeCategoryId == 0 ? allMenus : menuList).map((item, idx) => (
             <div key={idx}>
               <MenuListItem 

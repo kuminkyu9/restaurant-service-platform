@@ -4,6 +4,26 @@ import { AxiosError } from 'axios';
 import type { Category, CategoryInMenu } from '@restaurant/shared-types/restaurant'; 
 import type { ApiErrorResponse, ApiResponse } from '@restaurant/shared-types/api';
 
+// ErrorResponse의 구조를 명확히 정의합니다.
+interface ApiErrorCustomResponse {
+  success: boolean;
+  message: string;
+  data?: unknown; // 에러 시 데이터는 없을 수 있으므로 any 혹은 unknown
+}
+class ApiCustomError extends Error {
+  // AxiosError의 구조와 일치하도록 response 타입을 정의합니다.
+  response?: {
+    data: ApiErrorCustomResponse;
+  };
+  constructor(message: string, responseData: ApiErrorCustomResponse) {
+    super(message);
+    this.name = 'ApiCustomError';
+    this.response = {
+      data: responseData
+    };
+  }
+}
+
 // (손님용)카테고리 조회
 export const useCustomerRestaurantCategory = (restaurantId: number, tableNumber: number, options?: { enabled?: boolean }) => {
   return useQuery<CategoryInMenu[], AxiosError<ApiErrorResponse>>({
@@ -13,6 +33,18 @@ export const useCustomerRestaurantCategory = (restaurantId: number, tableNumber:
         api.get<ApiResponse<CategoryInMenu[]>>(`/restaurants/${restaurantId}/categories?tableNumber=${tableNumber}`),
         new Promise(resolve => setTimeout(resolve, 500)) 
       ]);
+
+      if (response.data && !response.data.success) {
+        throw new ApiCustomError(
+          response.data.message || '유효하지 않은 요청입니다.',
+          {
+            success: response.data.success,
+            message: response.data.message || '에러 발생',
+            data: response.data.data
+          }
+        );
+      }
+      
       return response?.data?.data ?? []; 
     },
     enabled: options?.enabled ?? true,

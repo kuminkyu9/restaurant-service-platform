@@ -6,5 +6,6 @@ export interface ApiErrorResponse {
 export  interface ApiResponse<T> {
   data: T;
   message?: string;
+  success: boolean;
   // status?: number 등 다른 필드
 }
