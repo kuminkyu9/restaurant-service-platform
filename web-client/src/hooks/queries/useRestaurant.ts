@@ -5,6 +5,25 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
 import type { ApiErrorResponse, ApiResponse } from '@restaurant/shared-types/api';
 
+// (손님용)현재 식당 조회
+export const useCustomerRestaurant = (restaurantId: number, options?: { enabled?: boolean }) => {
+  return useQuery<Restaurant, AxiosError<ApiErrorResponse>>({
+    queryKey: ['restaurants', 'customer'],
+    queryFn: async () => {
+      const [response] = await Promise.all([
+        api.get<ApiResponse<Restaurant>>(`/restaurants/${restaurantId}`),
+        new Promise(resolve => setTimeout(resolve, 500)) 
+      ]);
+      return response?.data?.data ?? []; 
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60, 
+    gcTime: 1000 * 60 * 30,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
 // 내 식당 조회
 export const useMyRestaurant = () => {
 

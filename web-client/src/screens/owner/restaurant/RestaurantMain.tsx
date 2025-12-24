@@ -7,7 +7,7 @@ import QrModal from '@/screens/owner/restaurant/QrModal';
 import CategoryListItem from '@/screens/owner/restaurant/CategoryListItem';
 import type { Category, Restaurant } from '@restaurant/shared-types/restaurant';
 import { useOwnerRestaurantCategory, useAddCategory, useEditCategory, useDeleteCategory } from '@/hooks/queries/useCategory';
-import CategorySkeleton from '@/components/skeletons/CategorySkeleton';
+import CategorySkeleton from '@/components/skeletons/owner/CategorySkeleton';
 import Spinner from '@/screens/Spinner';
 
 const RestaurantMain = () => {

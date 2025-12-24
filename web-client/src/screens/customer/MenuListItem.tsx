@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 
 interface itemProps {
-  img: string;
+  img?: string;
   name: string;
   content: string;
   price: number;
@@ -67,7 +67,7 @@ const MenuListItem = ({ img, name, content, price, moveMenuDetail, put }: itemPr
       {/* 이미지 영역 */}
       <div className="h-full aspect-square bg-gray-200 rounded-lg shrink-0 overflow-hidden mr-3"> {/* 마진도 mr-3으로 약간 축소 */}
         <img 
-          src={img} 
+          src={img ?? "https://images.unsplash.com/photo-1693429308125-3be7b105ad56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb3JlYW4lMjBiaWJpbWJhcCUyMGZvb2R8ZW58MXx8fHwxNzYzMTA0MjM0fDA&ixlib=rb-4.1.0&q=80&w=1080"} 
           alt={name} 
           className="w-full h-full object-cover" 
         />
@@ -81,7 +81,7 @@ const MenuListItem = ({ img, name, content, price, moveMenuDetail, put }: itemPr
           </div>
           <span className="font-bold text-gray-900 shrink-0 text-sm sm:text-base">₩{price}</span> {/* 가격 폰트도 sm으로 */}
         </div>
-        <button onClick={handleDeleteClick} className="cursor-pointer w-full bg-gray-900 hover:bg-gray-800 text-white py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-1"> {/* 버튼 높이/폰트 축소 */}
+        <button onClick={handleDeleteClick} className="cursor-pointer w-full bg-orange-400 hover:bg-orange-500 text-white py-1.5 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-1"> {/* 버튼 높이/폰트 축소 */}
           <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>

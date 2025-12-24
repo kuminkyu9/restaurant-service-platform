@@ -4,7 +4,7 @@ import MenuListItem from '@/screens/owner/category/MenuListItem';
 import Modal from '@/components/Modal';
 import type { Category, Menu } from '@restaurant/shared-types/restaurant';
 import { useOwnerRestaurantCategoryMenu, useAddMenu, useEditMenu, useDeleteMenu } from '@/hooks/queries/useMenu';
-import MenuSkeleton from '@/components/skeletons/MenuSkeleton';
+import MenuSkeleton from '@/components/skeletons/owner/MenuSkeleton';
 import Spinner from '@/screens/Spinner';
 
 const CategoryMain = () => {

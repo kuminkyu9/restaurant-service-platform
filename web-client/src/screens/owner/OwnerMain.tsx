@@ -8,7 +8,7 @@ import { useMyRestaurant } from '@/hooks/queries/useRestaurant';
 // import { useMyRestaurant, type Restaurant } from '@/hooks/queries/useRestaurant';
 import { useAddRestaurant, useDeleteRestaurant, useEditRestaurant } from '@/hooks/queries/useRestaurant';
 import Spinner from '@/screens/Spinner';
-import RestaurantSkeleton from '@/components/skeletons/RestaurantSkeleton';
+import RestaurantSkeleton from '@/components/skeletons/owner/RestaurantSkeleton';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
 import { useAuthStore } from '@/store/useAuthStore';
 

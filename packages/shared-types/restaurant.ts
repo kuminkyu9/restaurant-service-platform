@@ -13,7 +13,15 @@ export interface Category {
   name: string;
   restaurantId: number;
   createdAt: string;
-  // menus: menu[]
+}
+
+// 손님용
+export interface CategoryInMenu {
+  id: number;
+  name: string;
+  restaurantId: number;
+  createdAt: string;
+  menus: Menu[]
 }
 
 export interface Menu {

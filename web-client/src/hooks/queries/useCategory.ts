@@ -1,8 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/axios';
 import { AxiosError } from 'axios';
-import type { Category } from '@restaurant/shared-types/restaurant'; 
+import type { Category, CategoryInMenu } from '@restaurant/shared-types/restaurant'; 
 import type { ApiErrorResponse, ApiResponse } from '@restaurant/shared-types/api';
+
+// (손님용)카테고리 조회
+export const useCustomerRestaurantCategory = (restaurantId: number, tableNumber: number, options?: { enabled?: boolean }) => {
+  return useQuery<CategoryInMenu[], AxiosError<ApiErrorResponse>>({
+    queryKey: ['categories', 'customer', String(restaurantId), String(tableNumber)],
+    queryFn: async () => {
+      const [response] = await Promise.all([
+        api.get<ApiResponse<CategoryInMenu[]>>(`/restaurants/${restaurantId}/categories?tableNumber=${tableNumber}`),
+        new Promise(resolve => setTimeout(resolve, 500)) 
+      ]);
+      return response?.data?.data ?? []; 
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: 1000 * 60, 
+    gcTime: 1000 * 60 * 30,
+    retry: 1,
+    refetchOnWindowFocus: false, 
+  });
+};
 
 // 카테고리 조회
 export const useOwnerRestaurantCategory = (restaurantId: string | number) => {
