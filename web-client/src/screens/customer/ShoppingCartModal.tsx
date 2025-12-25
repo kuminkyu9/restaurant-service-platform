@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Menu } from '@restaurant/shared-types/restaurant';
+import Spinner from '../Spinner';
 
 export interface OrderItem extends Menu {
   quantity: number;
@@ -14,9 +15,10 @@ interface OrderListModalProps {
   allMenus: Menu[];             // 전체 메뉴 정보 리스트
   updateQuantity: (menuId: number, delta: number) => void;
   onOrder: (data: OrderItem[]) => void;
+  isAddPending: boolean;
 }
 
-const OrderListModal = ({isOpen, isRendered, closeModal, cart, allMenus, updateQuantity, onOrder}: OrderListModalProps) => {
+const OrderListModal = ({isOpen, isRendered, closeModal, cart, allMenus, updateQuantity, onOrder, isAddPending}: OrderListModalProps) => {
   
   const orderItems: OrderItem[] = useMemo(() => {
     return Object.entries(cart).map(([strId, quantity]) => {
@@ -70,7 +72,7 @@ const OrderListModal = ({isOpen, isRendered, closeModal, cart, allMenus, updateQ
             orderItems.map(item => (
               <div key={item!.id} className="flex gap-4 items-start">
                 {/* 메뉴 이미지 */}
-                <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                   {item!.image ? <img src={item!.image} className="w-full h-full object-cover"/> : null}
                 </div>
                 {/* 메뉴 정보 */}
@@ -105,9 +107,13 @@ const OrderListModal = ({isOpen, isRendered, closeModal, cart, allMenus, updateQ
             <span className="text-gray-500">총 금액</span>
             <span className="text-xl font-bold text-gray-900">₩{totalOrderPrice.toLocaleString()}</span>
           </div>
-          <button onClick={() => onOrder(orderItems)} className="cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg shadow-orange-200 shadow-lg active:scale-[0.98] transition-all">
-            주문하기
-          </button>
+          {
+            isAddPending ? <button onClick={() => onOrder(orderItems)} className="cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg shadow-orange-200 shadow-lg active:scale-[0.98] transition-all">
+              <div className='flex items-center justify-center'><Spinner size='sm' /><span className='pl-4'>주문중</span></div> 
+            </button> : <button onClick={() => onOrder(orderItems)} className="cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl text-lg shadow-orange-200 shadow-lg active:scale-[0.98] transition-all">
+              주문하기
+            </button>
+          }
         </div>
       </div>
     </div>

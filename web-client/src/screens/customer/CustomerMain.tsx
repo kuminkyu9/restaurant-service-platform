@@ -6,8 +6,10 @@ import MenuListItem from '@/screens/customer/MenuListItem';
 import OrderListModal from '@/screens/customer/OrderListModal';
 import ShoppingCartModal, { type OrderItem } from '@/screens/customer/ShoppingCartModal';
 import type { CategoryInMenu, Menu, Restaurant } from '@restaurant/shared-types/restaurant';
+import type { OrderMenu } from '@/hooks/queries/useOrder';
 import { useCustomerRestaurant } from '@/hooks/queries/useRestaurant';
 import { useCustomerRestaurantCategory } from '@/hooks/queries/useCategory';
+import { useOrderCustomer, useAddOrderCustomer } from '@/hooks/queries/useOrder';
 import CategoryTabSkeleton from '@/components/skeletons/customer/CategoryTabSkeleton';
 import MenuListSkeleton from '@/components/skeletons/customer/MenuListSkeleton';
 import CartButtonSkeleton from '@/components/skeletons/customer/CartButtonSkeleton';
@@ -19,31 +21,47 @@ const CustomerMain = () => {
   const [searchParams] = useSearchParams();
 
   const restaurantId = Number(searchParams.get('restaurantId')) || 0;
-  const qrTableNumber = Number(searchParams.get('qrTableNumber')) || 0;
-  if (!restaurantId || !qrTableNumber) {
+  const tableNumber = Number(searchParams.get('tableNumber')) || 0;
+  if (!restaurantId || !tableNumber) {
     // 아예 없는 경로(예: /404)로 보내서 "잘못된 페이지"를 띄움
     navigate('/not-found', { replace: true }); 
   }
 
+  // 식당 정보
   const { data: restaurant = {} as Restaurant, isLoading: isRestaurantLoading } = useCustomerRestaurant(restaurantId ?? 0);
-  const { data: categoryList = [], isLoading: isMenuLoading, isError: categoryError } = useCustomerRestaurantCategory(restaurantId ?? 0, qrTableNumber ?? 0);
+  // 카테고리.메뉴 정보
+  const { data: categoryList = [], isLoading: isMenuLoading, isError: categoryError } = useCustomerRestaurantCategory(restaurantId ?? 0, tableNumber ?? 0);
+  // 주문내역 정보
+  const { data: orderList = [], isLoading: isOrderLoading, } = useOrderCustomer(restaurantId ?? 0, tableNumber ?? 0);
+  // (장바구니)주문하기
+  const { mutate: handleAddOrderCustomer, isPending: isAddPending } = useAddOrderCustomer();
 
   const allMenus = categoryList.flatMap(category => category.menus);
 
-  const extendedCategoryList = useMemo(() => {
-    if (!categoryList || categoryList.length === 0) return [];
-    const allMenus = categoryList.flatMap(category => category.menus);
-    return [
-      { 
-        id: 0, 
-        name: '전체', 
-        restaurantId: categoryList[0].restaurantId, 
-        createdAt: '', 
-        menus: allMenus 
-      }, 
-      ...categoryList
-    ];
-  }, [categoryList]); 
+  // const extendedCategoryList = useMemo(() => {
+  //   if (!categoryList || categoryList.length === 0) return [];
+  //   const allMenus = categoryList.flatMap(category => category.menus);
+  //   return [
+  //     { 
+  //       id: 0, 
+  //       name: '전체', 
+  //       restaurantId: categoryList[0].restaurantId, 
+  //       createdAt: '', 
+  //       menus: allMenus 
+  //     }, 
+  //     ...categoryList
+  //   ];
+  // }, [categoryList]); 
+  const getExtendedList = () => {
+  if (!categoryList || categoryList.length === 0) return [];
+  const allMenus = categoryList.flatMap(category => [...category.menus]);
+  return [
+    { id: 0, name: '전체', restaurantId: categoryList[0].restaurantId, createdAt: '', menus: allMenus },
+    ...categoryList
+  ];
+};
+const extendedCategoryList = getExtendedList();
+
   const [activeCategoryId, setActiveCategoryId] = useState(0);
   const menuList = useMemo(() => {
     if (!extendedCategoryList || extendedCategoryList.length === 0) return [];
@@ -63,8 +81,11 @@ const CustomerMain = () => {
   const [isOrderOpen, setIsOrderOpen] = useState(false);
   const [isOrderRendered, setIsOrderRendered] = useState(false);
   const openOrderModal = () => {
+    if(isOrderLoading) return;
     setIsOrderRendered(true);
     setTimeout(() => setIsOrderOpen(true), 10); 
+    console.log(orderList);
+    console.log('주문내역 모달');
   };
   const closeOrderModal = () => {
     setIsOrderOpen(false); // 애니메이션 역재생 시작
@@ -82,8 +103,18 @@ const CustomerMain = () => {
     setTimeout(() => setIsCartRendered(false), 300); 
   };
   const onOrder = (data: OrderItem[]) => {  // 장바구니 > 주문하기
+    const formattedItems: OrderMenu[] = data.map(item => ({
+      menuId: item.id, // item.id를 menuId로 매핑
+      quantity: item.quantity
+    }));
     console.log(data);
     console.log('주문하기');
+    handleAddOrderCustomer({
+      restaurantId: restaurantId,
+      tableNumber: tableNumber,
+      items: formattedItems
+    });
+    setCart({});
     setIsCartOpen(false);
   }
 
@@ -148,7 +179,7 @@ const CustomerMain = () => {
               </div>
               <div>
                 <h1 className="font-bold text-gray-900 text-base">{restaurant ? restaurant.name : 'test'}</h1>
-                <p className="text-xs text-gray-500">테이블 {qrTableNumber}번</p>
+                <p className="text-xs text-gray-500">테이블 {tableNumber}번</p>
               </div>
             </div>
             <button onClick={() => openOrderModal()} className="cursor-pointer hover:bg-gray-100 flex items-center gap-1 text-gray-500 text-sm border border-gray-200 px-2 py-1 rounded">
@@ -215,7 +246,7 @@ const CustomerMain = () => {
       {/* Fixed Bottom Cart Bar */}
       {
         isRestaurantLoading || isMenuLoading ? <CartButtonSkeleton /> 
-        : totalCount < 1 ? <div className="cursor-pointer fixed bottom-4 left-4 right-4 bg-orange-400 text-white p-4 z-40 rounded-xl shadow-lg flex justify-between items-center transition-all animate-fade-in-up">
+        : totalCount < 1 ? <div onClick={openCartModal} className="cursor-pointer fixed bottom-4 left-4 right-4 bg-orange-400 text-white p-4 z-40 rounded-xl shadow-lg flex justify-between items-center transition-all animate-fade-in-up">
           <div className="flex items-center justify-center gap-2 mx-auto">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -238,13 +269,16 @@ const CustomerMain = () => {
         </div>
       }
       {/* (주문내역) 바텀 모달 컨테이너 */}
-      <OrderListModal isOpen={isOrderOpen} isRendered={isOrderRendered} closeModal={() => closeOrderModal()} />
+      <OrderListModal isOpen={isOrderOpen} isRendered={isOrderRendered} closeModal={() => closeOrderModal()} 
+        orderList={orderList}  
+      />
       {/* (장바구니) 바텀 모달 컨테이너 */}
       <ShoppingCartModal isOpen={isCartOpen} isRendered={isCartRendered} closeModal={() => closeCartModal()} 
         cart={cart}
         allMenus={allMenus}
         updateQuantity={updateQuantity}
         onOrder={onOrder}
+        isAddPending={isAddPending}
       />
     </div>
   );

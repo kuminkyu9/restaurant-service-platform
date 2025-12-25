@@ -287,7 +287,7 @@ const RestaurantMain = () => {
       </Modal>
 
       {/* 바텀 모달 컨테이너 */}
-      <QrModal isOpen={isOpen} isRendered={isRendered} restaurant={restaurant} qrTableNumber={qrTableNumber} closeModal={() => closeModal()} />
+      <QrModal isOpen={isOpen} isRendered={isRendered} restaurant={restaurant} tableNumber={qrTableNumber} closeModal={() => closeModal()} />
     </div>
   );
 };

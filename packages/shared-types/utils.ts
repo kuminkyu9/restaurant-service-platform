@@ -14,3 +14,10 @@ export const isEmpty = (data: unknown): boolean => {
   // null이나 undefined인 경우
   return data === null || data === undefined;
 }
+
+export const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleString('ko-KR', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
+};

@@ -9,7 +9,7 @@ const RestaurantHeaderSkeleton = () => {
         <div className="space-y-2">
           {/* 상호명 스켈레톤 ( restaurant.name ) */}
           <div className="h-4 bg-gray-200 rounded w-24" />
-          {/* 테이블 번호 스켈레톤 ( qrTableNumber ) */}
+          {/* 테이블 번호 스켈레톤 ( tableNumber ) */}
           <div className="h-3 bg-gray-100 rounded w-16" />
         </div>
       </div>

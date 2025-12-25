@@ -21,7 +21,7 @@ import ProtectedLayout from '@/router/ProtectedLayout';
 export const appRoutes: RouteObject[] = [
   {path: '/', element: <TypeChecker />, },  // 현재 qr로만 손님 페이지 진입 가능
 
-  {path: '/customer/main', element: <CustomerMain />, },  // /customer/main?restaurantId=2&qrTableNumber=3
+  {path: '/customer/main', element: <CustomerMain />, },  // /customer/main?restaurantId=2&tableNumber=3
   
   {path: 'owner/login', element: <OwnerLogin />, },
   {path: 'owner/register', element: <RegisterForm />, },

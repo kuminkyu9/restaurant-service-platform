@@ -34,3 +34,23 @@ export interface Menu {
   createdAt: string;
 }
 
+export interface OrderItem {
+  id: number;
+  quantity: number;
+  price: number;
+  createdAt: string;
+  orderId: number;
+  menuId: number;
+  menu: Menu
+}
+
+export interface OrderHistory {
+  id: number;
+  tableNumber: number;
+  status: string;
+  totalPrice: number;
+  createdAt: string;
+  restaurantId: number;
+  orderItems: OrderItem[]
+}
+

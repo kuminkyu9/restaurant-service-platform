@@ -85,11 +85,12 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// 주문 목록 조회 (GET /orders) - 주방/홀 직원용 (인증 X 또는 간소화)
+// 주문 목록 조회 (GET /orders?restaurantId=10&tableNumber=3&status=pending) - 주방/홀 직원용 (인증 X 또는 간소화)
 // 실제 서비스라면 직원 로그인이 필요하지만, 지금은 테스트 편의상 restaurantId 쿼리로 조회하게끔
+// (비회원)손님이 주문한 목록 확인하기 위한 api(그래서 #$이거 표시된 조건 추가함) !! 위에꺼 일부 취소
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { restaurantId, status } = req.query;
+    const { restaurantId, tableNumber, status } = req.query;
 
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: '식당 ID가 필요합니다.' });
@@ -100,6 +101,9 @@ router.get('/', async (req: Request, res: Response) => {
       restaurantId: Number(restaurantId),
     };
 
+    if(tableNumber) { // 테이블 번호 조건 추가 #$,  이거 있음 손님용에서 쓰는거
+      whereCondition.tableNumber = Number(tableNumber);  
+    }
     if (status) {
       whereCondition.status = String(status);
     } else {

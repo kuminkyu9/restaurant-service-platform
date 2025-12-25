@@ -6,12 +6,12 @@ interface itemProps {
   isOpen: boolean;
   isRendered: boolean;
   restaurant: Restaurant;
-  qrTableNumber: number | null;
+  tableNumber: number | null;
   closeModal: () => void;
 }
 
-const QrModal = ({ isOpen, isRendered, restaurant, qrTableNumber, closeModal }: itemProps) => {
-  const targetUrl = `/customer/main?restaurantId=${restaurant.id}&qrTableNumber=${qrTableNumber}`;
+const QrModal = ({ isOpen, isRendered, restaurant, tableNumber, closeModal }: itemProps) => {
+  const targetUrl = `/customer/main?restaurantId=${restaurant.id}&tableNumber=${tableNumber}`;
   const qrRef = useRef<HTMLDivElement>(null); 
 
   const downloadQrCode = () => {
@@ -57,7 +57,7 @@ const QrModal = ({ isOpen, isRendered, restaurant, qrTableNumber, closeModal }: 
 
   return(
     <>
-      {qrTableNumber == 0 ? <div>테이블 번호를 올바르게 입력해주세요</div> : (
+      {tableNumber == 0 ? <div>테이블 번호를 올바르게 입력해주세요</div> : (
         isRendered && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
             {/* 오버레이 */}
