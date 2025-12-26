@@ -18,7 +18,11 @@
     "jsx": "react-native",
     "customConditions": [
       "react-native"
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": [
     "**/*"

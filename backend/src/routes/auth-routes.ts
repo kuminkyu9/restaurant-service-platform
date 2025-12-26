@@ -6,6 +6,89 @@ import prisma from '@/utils/prisma';
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'; // 환경변수에서 가져오기
 
+// 스태프 회원가입 (POST /auth/staff/register)
+router.post('/staff/register', async (req: Request, res: Response) => {
+  try {
+    const { email, password, name } = req.body;
+    if (!email || !password || !name) {
+      return res.status(400).json({ 
+        success: false, 
+        message: '이메일, 비밀번호, 이름은 필수입니다.' 
+      });
+    }
+    // 이미 존재하는 이메일인지 확인
+    const existingStaff = await prisma.staff.findUnique({
+      where: { email },
+    });
+    if (existingStaff) {
+      return res.status(409).json({ 
+        success: false, 
+        message: '이미 가입된 이메일입니다.' 
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10); // 비밀번호 암호화 (Salt Round: 10)
+    const newStaff = await prisma.staff.create({  // DB 저장
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+      },
+    });
+    // 응답 (비밀번호는 빼고)
+    const { password: _, ...staffWithoutPassword } = newStaff;
+    return res.status(201).json({
+      success: true,
+      message: '스태프 회원가입 성공!',
+      data: staffWithoutPassword,
+    });
+  } catch (error) {
+    console.error('Owner Register Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: '서버 내부 오류가 발생했습니다.',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// 스태프 로그인 (POST /auth/staff/login)
+router.post('/staff/login', async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: '이메일과 비밀번호를 입력해주세요.' });
+    }
+    const staff = await prisma.staff.findUnique({ where: { email } });
+    if (!staff) {
+      return res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 잘못되었습니다.' });
+    }
+    // 비밀번호 일치 여부 확인 (bcrypt)
+    const isPasswordValid = await bcrypt.compare(password, staff.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: '이메일 또는 비밀번호가 잘못되었습니다.' });
+    }
+    // JWT 토큰 발급 (Payload에 id, email, 등을 담음)
+    const token = jwt.sign(
+      { id: staff.id, email: staff.email, name: staff.name, role: 'STAFF' }, 
+      JWT_SECRET, 
+      { expiresIn: '12h' } // 토큰 유효기간: 12시간
+    );
+    // 응답 (토큰 전달)
+    return res.status(200).json({
+      success: true,
+      message: '로그인 성공!',
+      data: {
+        token,
+        staff: { id: staff.id, name: staff.name, email: staff.email }
+      }
+    });
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    return res.status(500).json({ success: false, message: '서버 에러', error: 'Unknown error' });
+  }
+});
+
 // 사장님 회원가입 (POST /auth/owner/register)
 router.post('/owner/register', async (req: Request, res: Response) => {
   try {
