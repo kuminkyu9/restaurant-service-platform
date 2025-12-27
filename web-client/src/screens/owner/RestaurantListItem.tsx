@@ -1,4 +1,4 @@
-import { Cog } from 'lucide-react';
+import { Cog, UserPlus } from 'lucide-react';
 import Spinner from '@/screens/Spinner';
 
 interface itemProps {
@@ -11,13 +11,19 @@ interface itemProps {
   del: () => void;
   isDeletePending: boolean;
   movePath: () => void;
+  addStaff: () => void;
 }
 
-const RestaurantListItem = ({ img, name, address, edit, isEditPending, del, isDeletePending, movePath }: itemProps) => {
+const RestaurantListItem = ({ img, name, address, edit, isEditPending, del, isDeletePending, movePath, addStaff }: itemProps) => {
+  
+  const handleAddStaff = (e: React.MouseEvent) => {
+    e.stopPropagation(); // **이벤트 버블링 중단!**
+    addStaff(); 
+  };
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // **이벤트 버블링 중단!**
-    edit(); // props로 받은 del 함수 실행
+    edit();
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
@@ -46,6 +52,9 @@ const RestaurantListItem = ({ img, name, address, edit, isEditPending, del, isDe
         {
           (isDeletePending || isEditPending) ? <Spinner size='sm' /> 
           : <>
+            <button onClick={handleAddStaff} className="cursor-pointer text-gray-400 hover:text-violet-300 p-2 rounded-full hover:bg-violet-50 transition-colors">
+              <UserPlus className="h-5 w-5" />
+            </button>
             <button onClick={handleEditClick} className="cursor-pointer text-gray-400 hover:text-blue-300 p-2 rounded-full hover:bg-blue-50 transition-colors">
               <Cog className="h-5 w-5" />
             </button>

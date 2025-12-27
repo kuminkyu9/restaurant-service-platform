@@ -30,7 +30,7 @@ React(Web), React Native(App), Express(Backend)를 **pnpm Monorepo**로 구성�
 ### 📊 데이터베이스 설계 (Database Design)
 본 프로젝트는 **PostgreSQL**을 사용하며, 다중 점포와 유연한 고용 관계를 지원하도록 설계되었습니다.
 
-![Database ERD](./restaurant_service_platform_erd.png)
+![Database ERD](./docs/restaurant_service_platform_erd.png)
 
 
 #### 핵심 설계 전략

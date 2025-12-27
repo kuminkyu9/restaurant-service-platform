@@ -54,3 +54,20 @@ export interface OrderHistory {
   orderItems: OrderItem[]
 }
 
+export interface Employment {
+  id: number;
+  hourlyWage: number;
+  startWorkTime: string;
+  endWorkTime: string;
+  isManager: false;
+  createdAt: string;
+  staffId: number;
+  restaurantId: number;
+  staff: EmploymentStaff;
+}
+
+export interface EmploymentStaff {
+  id: number;
+  name: string;
+  email: string;
+}

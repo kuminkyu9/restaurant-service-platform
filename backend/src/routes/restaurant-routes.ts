@@ -77,7 +77,6 @@ router.post('/', authenticateToken, upload.single('image'), async (req: Request,
 });
 
 // 내 식당 목록 조회 (GET /restaurants/my)
-// 사장님이 로그인하면 "내 식당들"을 보여줘야 하니까 바로 필요
 router.get('/my', authenticateToken, async (req: Request, res: Response) => {
   try {
     const ownerId = req.user?.id;
@@ -101,7 +100,6 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // 식당 정보 수정 (PATCH /restaurants/:id)
-// PUT 대신 PATCH를 쓰는 이유: 정보의 일부(이름만, 주소만) 바꿀 수 있어서
 router.patch('/:id', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id); // URL 파라미터에서 식당 ID 가져오기

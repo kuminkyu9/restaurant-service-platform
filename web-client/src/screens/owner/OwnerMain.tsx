@@ -4,25 +4,27 @@ import OwnerMainProfileDropDown from '@/screens/owner/profile/OwnerMainProfileDr
 import RestaurantListItem from '@/screens/owner/RestaurantListItem';
 import { useNavigate } from 'react-router-dom';
 import { useLogout } from '@/hooks/queries/useAuth';
-import { useMyRestaurant } from '@/hooks/queries/useRestaurant';
-// import { useMyRestaurant, type Restaurant } from '@/hooks/queries/useRestaurant';
-import { useAddRestaurant, useDeleteRestaurant, useEditRestaurant } from '@/hooks/queries/useRestaurant';
+import { useMyRestaurant, useAddRestaurant, useDeleteRestaurant, useEditRestaurant } from '@/hooks/queries/useRestaurant';
 import Spinner from '@/screens/Spinner';
 import RestaurantSkeleton from '@/components/skeletons/owner/RestaurantSkeleton';
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
 import { useAuthStore } from '@/store/useAuthStore';
+import StaffModal from '@/screens/owner/StaffModal';
 
 const OwnerMain = () => {
   const navigate = useNavigate();
 
   const user = useAuthStore((state) => state.user);
 
-  const skeletons = [1, 2, 3, 4];
+  const skeletons = [1, 2, 3, 4, 5];
   const { data: restaurantList = [], isLoading } = useMyRestaurant();
   const { mutate: handleAddRestaurant, isPending: isAddPending } = useAddRestaurant();
   const { mutate: handleEditRestaurant, isPending: isEditPending } = useEditRestaurant();
   const { mutate: handleDeleteRestaurant, isPending: isDeletePending } = useDeleteRestaurant();
 
+  const [selectedRestaurantId, setFocusRestaurantId] = useState(0);
+  const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
+  const setAddStaffModal = (val: boolean) => setIsAddStaffModalOpen(val);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const setAddModal = (val: boolean) => setIsAddModalOpen(val);
   const [isAddModalEditMode, setIsAddModalEditMode] = useState(false);
@@ -150,6 +152,14 @@ const OwnerMain = () => {
     });
   }
 
+  const addStaffModal = (data: Restaurant) => {
+    console.log(data);
+    console.log('add staff');
+    setFocusRestaurantId(data.id);
+    setAddStaffModal(true);
+    console.log(isAddStaffModalOpen);
+  }
+
   return (
     <>
       {/*  관리상점, 상점추가, 상점들어가면 메뉴 수정 등 */}
@@ -218,13 +228,20 @@ const OwnerMain = () => {
                     isEditPending={isEditPending}
                     del={() => delRestaurant(item)} 
                     isDeletePending={isDeletePending}
-                    movePath={()=> moveRestaurant(item)} 
+                    movePath={() => moveRestaurant(item)}
+                    addStaff={() => addStaffModal(item)}
                   />
                 </div>
               ))}
             </div>
           )}
         </main>
+        {/* 스태프 고용 및 확인 */}
+        <StaffModal 
+          isOpen={isAddStaffModalOpen} 
+          onClose={() => setAddStaffModal(false)} 
+          restaurantId={selectedRestaurantId}
+        />
         <OwnerMainProfileDropDown
           isOpen={isProfile}
           onClose={() => setProfileDropDown(false)}

@@ -67,7 +67,7 @@ const LoginScreen = ({ navigation }: Props) => {
     >
       <View style={styles.innerContainer}>
         <Text style={styles.title}>STAFF APP</Text>
-        <Text style={styles.subtitle}>직원용 관리 시스템</Text>
+        <Text style={styles.subtitle}>스태프 전용 관리 시스템</Text>
 
         <View style={styles.inputContainer}>
           <TextInput

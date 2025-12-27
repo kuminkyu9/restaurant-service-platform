@@ -23,7 +23,7 @@ export interface Owner {
 // }
 
 /**  
- * 직원(알바)
+ * 직원(스태프)
  * @property {number} id - 사용자 고유 ID
 */
 export interface Staff {

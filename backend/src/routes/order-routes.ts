@@ -85,8 +85,8 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
-// 주문 목록 조회 (GET /orders?restaurantId=10&tableNumber=3&status=pending) - 주방/홀 직원용 (인증 X 또는 간소화)
-// 실제 서비스라면 직원 로그인이 필요하지만, 지금은 테스트 편의상 restaurantId 쿼리로 조회하게끔
+// 주문 목록 조회 (GET /orders?restaurantId=10&tableNumber=3&status=pending) - 주방/홀 스태프용 (인증 X 또는 간소화)
+// 실제 서비스라면 스태프 로그인이 필요하지만, 지금은 테스트 편의상 restaurantId 쿼리로 조회하게끔
 // (비회원)손님이 주문한 목록 확인하기 위한 api(그래서 #$이거 표시된 조건 추가함) !! 위에꺼 일부 취소
 router.get('/', async (req: Request, res: Response) => {
   try {
