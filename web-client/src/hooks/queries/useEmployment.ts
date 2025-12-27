@@ -82,3 +82,24 @@ export const useEditEmployment = () => {
     },
   });
 };
+
+// 고용 정보 삭제(해고)
+export const useDeleteEmployment = (restaurantId: number) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (employmentId: number) => {
+      const response = await api.delete(`/employment/${employmentId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      alert('고용 정보 삭제 완료');
+      queryClient.invalidateQueries({ queryKey: ['employment', 'my', String(restaurantId)] });
+    },
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      console.error('식당 삭제 실패:', error);
+      const message = error.response?.data?.message || '식당 삭제에 실패했습니다.';
+      alert(message);
+    },
+  });
+};

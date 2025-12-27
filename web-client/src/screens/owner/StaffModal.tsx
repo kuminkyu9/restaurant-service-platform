@@ -3,7 +3,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Cog, X, UserPlus, Edit2, Users, DollarSign, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
 import type { Employment } from '@restaurant/shared-types/restaurant'; 
 import { isEmpty } from '@restaurant/shared-types/utils';
-import { useMyEmployment, useAddEmployment, useEditEmployment } from '@/hooks/queries/useEmployment';
+import { useMyEmployment, useAddEmployment, useEditEmployment, useDeleteEmployment } from '@/hooks/queries/useEmployment';
 import Spinner from '../Spinner';
 
 interface StaffModalProps {
@@ -20,14 +20,15 @@ export interface StaffFormData {
   endWorkTime: string;
   isManager: boolean;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModalProps) {
   const { data: employmentList = [], isLoading } = useMyEmployment(restaurantId);
   const { mutate: handleAddEmployment, isPending: isAddEmploymentPending } = useAddEmployment(restaurantId);
   const { mutate: handleEditEmployment, isPending: isEditEmploymentPending } = useEditEmployment();
+  const { mutate: handleDeleteEmployment} = useDeleteEmployment(restaurantId);
+  // const { mutate: handleDeleteEmployment, isPending: isDeleteEmploymentPending } = useDeleteEmployment(restaurantId);
 
   const [activeTab, setActiveTab] = useState<'current' | 'hire'>('current');
-    const [editingId, setEditingId] = useState<number | null>(null);  // employmentId
+  const [editingId, setEditingId] = useState<number | null>(null);  // employmentId
 
   // React Hook Form 설정
   const { 
@@ -85,8 +86,20 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
     setValue('isManager', data.isManager);
     // 고용 추가 탭 재활용 하기!
     setActiveTab('hire');
-    
     // setStaffEditMode(false);
+  }
+  
+  const delStaff = (data: Employment) => {
+    console.log(data);
+    console.log('해당 스태프 해고!');
+    handleDeleteEmployment(data.id);
+  }
+
+  const close = () => {
+    setEditingId(null);
+    reset(); // 폼 초기화
+    setActiveTab('current');
+    onClose();
   }
 
   // 모달이 닫혀있으면 렌더링하지 않음
@@ -98,7 +111,7 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
       <div 
         className="absolute inset-0 bg-black/50 transition-opacity"
         // className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
+        onClick={close}
       />
 
       {/* 모달 컨텐츠 */}
@@ -111,7 +124,7 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
             맛있는 한식당 - 스태프 관리
           </h2>
           <button 
-            onClick={onClose}
+            onClick={close}
             className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
           >
             <X className="w-5 h-5" />
@@ -173,8 +186,13 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
                         근무 시간: {item.startWorkTime} ~ {item.endWorkTime}
                       </div>
                       <div>
-                        <button onClick={() => editStaff(item)} className="cursor-pointer text-gray-400 hover:text-blue-300 p-2 rounded-full hover:bg-blue-50 transition-colors">
+                        <button onClick={() => editStaff(item)} className="mr-2 cursor-pointer text-gray-400 hover:text-blue-300 p-2 rounded-full hover:bg-blue-50 transition-colors">
                           <Cog className="h-5 w-5" />
+                        </button>
+                        <button onClick={() => delStaff(item)} className="cursor-pointer text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </div>

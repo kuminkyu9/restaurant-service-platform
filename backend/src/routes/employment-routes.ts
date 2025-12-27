@@ -200,4 +200,28 @@ router.get('/:restaurantId', authenticateToken, async (req: Request, res: Respon
   }
 });
 
+// 식당 삭제 (DELETE /employment/:employmentId)
+router.delete('/:employmentId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const employmentId = Number(req.params.employmentId);
+    const ownerId = req.user?.id;
+    const existingEmployment = await prisma.employment.findFirst({
+      where: { id: employmentId, restaurant: {ownerId: ownerId} },
+    });
+    if (!existingEmployment) {
+      return res.status(404).json({ success: false, message: '고용정보를 찾을 수 없거나 삭제 권한이 없습니다.' });
+    }
+    await prisma.employment.delete({
+      where: { id: employmentId },
+    });
+    return res.status(200).json({
+      success: true,
+      message: '스태프 고용정보가 삭제되었습니다.',
+    });
+  } catch (error) {
+    console.error('Delete Employments Error:', error);
+    return res.status(500).json({ success: false, message: '스태프 고용정보 삭제 중 오류 발생' });
+  }
+});
+
 export default router;
