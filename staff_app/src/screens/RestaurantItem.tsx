@@ -24,14 +24,7 @@ const RestaurantItem = ({ item, onPress }: RestaurantItemProps) => (
   <TouchableOpacity
     onPress={onPress}
     activeOpacity={0.7}
-    // style={{
-    //   flex: 1,
-    //   alignItems: 'center',
-    //   justifyContent: 'center',
-    //   paddingVertical: 10,
-    // }}
-  >
-    <View style={{
+    style={{
       backgroundColor: '#FFFFFF',
       marginBottom: 15,
       padding: 20,
@@ -43,7 +36,9 @@ const RestaurantItem = ({ item, onPress }: RestaurantItemProps) => (
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.05,
       shadowRadius: 10,
-    }}>
+    }}
+  >
+    <View >
       {/* 카드 헤더 */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
         <Text style={{ fontSize: 15, color: '#333', fontWeight: '500' }}>나의 근무지</Text>

@@ -132,6 +132,8 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+
+// 이거 orderId 여서 스태프쪽에서는 orderId 알수가 없어서 생각해보니깐 이거 못쓸듯 staff에 새로 만들거임
 // 주문 상태 변경 (PATCH /orders/:orderId/status) - "조리중", "서빙완료" 등
 router.patch('/:orderId/status', async (req: Request, res: Response) => {
   try {

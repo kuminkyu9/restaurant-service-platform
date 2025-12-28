@@ -6,51 +6,17 @@ import FooterScreen from '@/screens/FooterScreen';
 import RestaurantItem from '@/screens/RestaurantItem';
 import { restaurantApi, type MyRestaurantData } from '@/api/restaurant';
 import { useAuth } from '@/contexts/AuthContext'
-
-interface Restaurant {
-  id: string;
-  name: string;
-  address: string;
-  phone: string;
-  role: string;
-  isWorking: boolean; // 현재 근무 중인지 여부
-}
-
-// 더미 데이터 (테스트용)
-const MY_RESTAURANTS: Restaurant[] = [
-  {
-    id: '1',
-    name: '맛있는 한식당',
-    address: '서울시 강남구 테헤란로 123',
-    phone: '02-1234-5678',
-    role: '홀 서빙',
-    isWorking: true, // 근무 중 (최상단 노출)
-  },
-  {
-    id: '2',
-    name: '카페 디저트',
-    address: '서울시 마포구 홍대입구 9번출구',
-    phone: '02-9876-5432',
-    role: '바리스타',
-    isWorking: false,
-  },
-  {
-    id: '3',
-    name: '주말 편의점',
-    address: '경기도 성남시 분당구',
-    phone: '031-111-2222',
-    role: '캐셔',
-    isWorking: false,
-  },
-];
-
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/types/navigation';
 export interface DisplayRestaurant extends MyRestaurantData {
   id: string;        // FlatList keyExtractor용
   isWorking: boolean;
   role: string;
 }
 
-export default function HomeScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
+
+const HomeScreen = ({ navigation }: Props) => {
   const { staff } = useAuth();
 
   const [restaurants, setRestaurants] = useState<DisplayRestaurant[]>([]);
@@ -90,13 +56,8 @@ export default function HomeScreen() {
   const sortedRestaurants = [...restaurants].sort((a, b) => 
     (a.isWorking === b.isWorking ? 0 : a.isWorking ? -1 : 1)
   );
-  
-  // // 근무 중인 식당이 맨 위로 오도록 정렬
-  // const sortedRestaurants = [...MY_RESTAURANTS].sort((a, b) => (a.isWorking === b.isWorking ? 0 : a.isWorking ? -1 : 1));
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-      
       {/* 1. 고정 헤더 */}
       <View style={{
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -138,6 +99,12 @@ export default function HomeScreen() {
           renderItem={({ item }) => <RestaurantItem item={item} onPress={() => {
             console.log(item);
             console.log('해당 식당 이동');
+            navigation.push('Workplace', {
+              restaurantId: item.restaurantId,
+              restaurantName: item.restaurantName,
+              startWorkTime: item.startWorkTime,
+              endWorkTime: item.endWorkTime,
+            });
           }} />}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}
@@ -173,4 +140,6 @@ export default function HomeScreen() {
       <FooterScreen />
     </SafeAreaView>
   );
-}
+};
+
+export default HomeScreen;
