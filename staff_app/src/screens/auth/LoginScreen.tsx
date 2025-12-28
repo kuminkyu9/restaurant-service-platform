@@ -13,10 +13,13 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 import { authApi } from '@/api/auth';
 import * as SecureStore from 'expo-secure-store';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const LoginScreen = ({ navigation }: Props) => {
+  const { setStaff } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); // 로딩 상태 추가
@@ -44,6 +47,9 @@ const LoginScreen = ({ navigation }: Props) => {
       // 추후 redius refresh 추가 필요
       if (response.data.token) {
         await SecureStore.setItemAsync('accessToken', response.data.token);
+      }
+      if (response.data.staff) {
+        setStaff(response.data.staff);
       }
       // 토큰 저장(여긴 access 와 refresh 있음 시간상 한개로 통일)
       // await SecureStore.setItemAsync('accessToken', data.accessToken);

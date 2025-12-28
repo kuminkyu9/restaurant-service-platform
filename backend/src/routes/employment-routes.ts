@@ -200,7 +200,7 @@ router.get('/:restaurantId', authenticateToken, async (req: Request, res: Respon
   }
 });
 
-// 식당 삭제 (DELETE /employment/:employmentId)
+// 스태프 고용 정보 삭제 해고 (DELETE /employment/:employmentId)
 router.delete('/:employmentId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const employmentId = Number(req.params.employmentId);

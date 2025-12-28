@@ -1,218 +1,176 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import FooterScreen from '@/screens/FooterScreen';
+import RestaurantItem from '@/screens/RestaurantItem';
+import { restaurantApi, type MyRestaurantData } from '@/api/restaurant';
+import { useAuth } from '@/contexts/AuthContext'
 
-// 메뉴 카드 컴포넌트
-const MenuCard = ({ 
-  iconName, 
-  iconColor, 
-  iconBgColor, 
-  title, 
-  subtitle, 
-  onPress 
-}: { 
-  iconName: keyof typeof Ionicons.glyphMap; 
-  iconColor: string; 
-  iconBgColor: string; 
-  title: string; 
-  subtitle: string; 
-  onPress?: () => void;
-}) => (
-  <TouchableOpacity 
-    onPress={onPress} 
-    activeOpacity={0.7}
-    style={{
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#FFFFFF',
-      padding: 16,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: '#F0F0F0',
-      // 그림자 효과
-      elevation: 1,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.03,
-      shadowRadius: 5,
-    }}
-  >
-    <View style={{
-      width: 44,
-      height: 44,
-      borderRadius: 10,
-      backgroundColor: iconBgColor,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 15,
-    }}>
-      <Ionicons name={iconName} size={24} color={iconColor} />
-    </View>
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 2 }}>
-        {title}
-      </Text>
-      <Text style={{ fontSize: 13, color: '#888' }}>
-        {subtitle}
-      </Text>
-    </View>
-    <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-  </TouchableOpacity>
-);
+interface Restaurant {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  role: string;
+  isWorking: boolean; // 현재 근무 중인지 여부
+}
+
+// 더미 데이터 (테스트용)
+const MY_RESTAURANTS: Restaurant[] = [
+  {
+    id: '1',
+    name: '맛있는 한식당',
+    address: '서울시 강남구 테헤란로 123',
+    phone: '02-1234-5678',
+    role: '홀 서빙',
+    isWorking: true, // 근무 중 (최상단 노출)
+  },
+  {
+    id: '2',
+    name: '카페 디저트',
+    address: '서울시 마포구 홍대입구 9번출구',
+    phone: '02-9876-5432',
+    role: '바리스타',
+    isWorking: false,
+  },
+  {
+    id: '3',
+    name: '주말 편의점',
+    address: '경기도 성남시 분당구',
+    phone: '031-111-2222',
+    role: '캐셔',
+    isWorking: false,
+  },
+];
+
+export interface DisplayRestaurant extends MyRestaurantData {
+  id: string;        // FlatList keyExtractor용
+  isWorking: boolean;
+  role: string;
+}
 
 export default function HomeScreen() {
+  const { staff } = useAuth();
+
+  const [restaurants, setRestaurants] = useState<DisplayRestaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchRestaurants = async () => {
+    try {
+      setIsLoading(true);
+      const response = await restaurantApi.getMyRestaurants(); 
+      if (response.success) {
+        // const now = new Date();
+        // const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        // 데이터 가공: MyRestaurantData -> UI용 Restaurant 타입으로 변환
+        const processedData = response.data.map((item) => {
+          // const isWorking = currentTime >= item.startWorkTime && currentTime <= item.endWorkTime;
+          const isWorking = false;
+          return {
+            ...item, // 원본 데이터 복사
+            id: item.restaurantId.toString(),
+            role: item.isManager ? "매니저" : "스태프",
+            isWorking: isWorking, // 가공해서 추가
+            // phone: "010-0000-0000", // 현재 전화번호 속성 없음
+          };
+        });
+        setRestaurants(processedData);
+      }
+    } catch (error) {
+      console.error("데이터 로딩 실패:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  // 마운트 시 최초 1회
+  useEffect(() => {
+    fetchRestaurants();
+  }, []);
+  const sortedRestaurants = [...restaurants].sort((a, b) => 
+    (a.isWorking === b.isWorking ? 0 : a.isWorking ? -1 : 1)
+  );
+  
+  // // 근무 중인 식당이 맨 위로 오도록 정렬
+  // const sortedRestaurants = [...MY_RESTAURANTS].sort((a, b) => (a.isWorking === b.isWorking ? 0 : a.isWorking ? -1 : 1));
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+      
+      {/* 1. 고정 헤더 */}
+      <View style={{
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        paddingHorizontal: 20, paddingVertical: 15, backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1, borderBottomColor: '#E0E0E0'
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ width: 36, height: 36, backgroundColor: '#FF6B00', borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 10 }}>
+            <Ionicons name="storefront" size={20} color="#FFFFFF" />
+          </View>
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>근무 관리</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>스태프 대시보드</Text>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ alignItems: 'flex-end', marginRight: 10 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>{staff?.name}</Text>
+            {/* <Text style={{ fontSize: 12, color: '#666' }}>직원</Text> */}
+          </View>
+          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#2962FF', justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 14 }}>{staff?.name.slice(0,1)}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 2. 가변 영역 (식당 리스트) */}
+      <View style={{ flex: 1, paddingTop: 20 }}>
+        {/* 리스트 헤더 텍스트 */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>
+            내 근무지 목록 <Text style={{ color: '#FF6B00' }}>{sortedRestaurants.length}</Text>
+          </Text>
+        </View>
         
-        {/* 1. 상단 헤더 */}
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingVertical: 15,
-          backgroundColor: '#FFFFFF',
-        }}>
-          {/* 왼쪽: 로고 및 앱 이름 */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{
-              width: 36,
-              height: 36,
-              backgroundColor: '#FF6B00',
-              borderRadius: 10,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 10,
-            }}>
-              <Ionicons name="storefront" size={20} color="#FFFFFF" />
-            </View>
-            <View>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>근무 관리</Text>
-              <Text style={{ fontSize: 12, color: '#666' }}>스태프 대시보드</Text>
-            </View>
-          </View>
-          
-          {/* 오른쪽: 사용자 정보 */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ alignItems: 'flex-end', marginRight: 10 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#333' }}>김민수</Text>
-              <Text style={{ fontSize: 12, color: '#666' }}>홀 서빙</Text>
-            </View>
-            <View style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#2962FF',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-              <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 14 }}>김</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 구분선 */}
-        <View style={{ height: 1, backgroundColor: '#E0E0E0' }} />
-
-        {/* 2. 근무 중인 식당 카드 */}
-        <View style={{
-          backgroundColor: '#FFFFFF',
-          margin: 20,
-          padding: 20,
-          borderRadius: 16,
-          // 그림자 효과
-          elevation: 3,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 10,
-        }}>
-          {/* 카드 헤더 */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={{ fontSize: 15, color: '#333', fontWeight: '500' }}>근무 중인 식당</Text>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#E8F5E9',
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 12,
-            }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#00C853', marginRight: 6 }} />
-              <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#00C853' }}>근무 중</Text>
-            </View>
-          </View>
-
-          {/* 식당 정보 */}
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{
-              width: 50,
-              height: 50,
-              backgroundColor: '#FFF3E0',
-              borderRadius: 12,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 15,
-            }}>
-              <Ionicons name="restaurant-outline" size={28} color="#E65100" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8 }}>
-                맛있는 한식당
+        <FlatList
+          data={sortedRestaurants}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <RestaurantItem item={item} onPress={() => {
+            console.log(item);
+            console.log('해당 식당 이동');
+          }} />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}
+          ListEmptyComponent={() => (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
+              <View style={{ 
+                width: 80, height: 80, borderRadius: 40, 
+                backgroundColor: '#F0F0F0', justifyContent: 'center', alignItems: 'center', marginBottom: 16 
+              }}>
+                <Ionicons name="storefront-outline" size={40} color="#BDBDBD" />
+              </View>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#666', marginBottom: 8 }}>
+                등록된 근무지가 없습니다
               </Text>
-              
-              {/* 상세 정보 행들 */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                <Ionicons name="location-outline" size={14} color="#666" />
-                <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>서울시 강남구 테헤란로 123</Text>
-              </View>
-              
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                <Ionicons name="call-outline" size={14} color="#666" />
-                <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>02-1234-5678</Text>
-              </View>
-              
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="person-outline" size={14} color="#666" />
-                <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>매니저: 박매니저</Text>
-              </View>
+              <Text style={{ fontSize: 14, color: '#999', textAlign: 'center' }}>
+                사장님에게 초대 코드를 요청하거나{'\n'}새로운 근무지를 등록해 보세요.
+              </Text>
+              <TouchableOpacity 
+                onPress={fetchRestaurants} // 새로고침 기능 연결
+                style={{
+                  marginTop: 20,
+                  paddingVertical: 10, paddingHorizontal: 20,
+                  backgroundColor: '#E3F2FD', borderRadius: 8
+                }}
+              >
+                <Text style={{ color: '#2962FF', fontWeight: '600' }}>목록 새로고침</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </View>
-
-        {/* 3. 하단 메뉴 리스트 */}
-        <View style={{ paddingHorizontal: 20, gap: 12 }}>
-          <MenuCard 
-            iconName="time-outline" 
-            iconColor="#2962FF" 
-            iconBgColor="#E3F2FD" 
-            title="출퇴근 기록" 
-            subtitle="근무 시간 관리"
-            onPress={() => console.log('출퇴근 클릭')}
-          />
-          
-          <MenuCard 
-            iconName="calendar-outline" 
-            iconColor="#00C853" 
-            iconBgColor="#E8F5E9" 
-            title="근무 일정" 
-            subtitle="스케줄 확인"
-            onPress={() => console.log('일정 클릭')}
-          />
-          
-          <MenuCard 
-            iconName="cash-outline" 
-            iconColor="#AA00FF" 
-            iconBgColor="#F3E5F5" 
-            title="급여 정보" 
-            subtitle="급여 내역 조회"
-            onPress={() => console.log('급여 클릭')}
-          />
-        </View>
-
-      </ScrollView>
+          )}
+        />
+      </View>
+      {/* footer 출퇴근, 일정, 급여 */}
+      <FooterScreen />
     </SafeAreaView>
   );
 }

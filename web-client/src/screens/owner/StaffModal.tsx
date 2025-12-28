@@ -120,7 +120,7 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
         {/* 헤더 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-bold flex items-center gap-2 text-gray-900">
-            <UserPlus className="w-5 h-5 text-orange-500" />
+            <Users className="w-5 h-5 text-orange-500" />
             맛있는 한식당 - 스태프 관리
           </h2>
           <button 
