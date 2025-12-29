@@ -43,24 +43,6 @@ router.get('/restaurants', authenticateToken, async (req: Request, res: Response
         createdAt: 'desc', // 최근 취직한 순서
       },
     });
-
-    
-    // 3. 응답 데이터 가공 (프론트에서 쓰기 편하게 Flattening 추천)
-    // employment 정보(시급, 근무시간 등)와 restaurant 정보를 합쳐서 보내줌
-    // const data = myEmployments.map((emp) => ({
-    //   employmentId: emp.id,
-    //   restaurantId: emp.restaurant.id,
-    //   restaurantName: emp.restaurant.name,
-    //   restaurantAddress: emp.restaurant.address,
-    //   restaurantImage: emp.restaurant.image,
-    //   ownerName: emp.restaurant.owner.name, // 사장님 이름
-    //   hourlyWage: emp.hourlyWage,
-    //   startWorkTime: emp.startWorkTime,
-    //   endWorkTime: emp.endWorkTime,
-    //   isManager: emp.isManager,
-    //   hiredAt: emp.createdAt,
-    // }));
-    // 현재 일하는 중인지 체크
     const data = myEmployments.map((emp) => {
       const lastLog = emp.workLogs[0];
       const isWorking = lastLog && lastLog.endTime === null;
@@ -76,7 +58,7 @@ router.get('/restaurants', authenticateToken, async (req: Request, res: Response
         endWorkTime: emp.endWorkTime,
         isManager: emp.isManager,
         hiredAt: emp.createdAt,
-
+        // 현재 일하는 중인지 체크
         isWorking: isWorking
       }
     });

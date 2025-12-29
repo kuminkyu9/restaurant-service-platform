@@ -11,14 +11,14 @@ import { RootStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
-import { employmentApi } from '@/api/employment';
 
 import OrderItemCard, { type Order, type OrderStatus } from '@/screens/workplace/OrderItemCard';
 import StatusChangeModal from '@/screens/workplace/StatusChangeModal';
 import WorkplaceFooter from '@/screens/workplace/WorkplaceFooter'; 
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Workplace'>;
+import { employmentApi } from '@/api/employment';
 
+type Props = NativeStackScreenProps<RootStackParamList, 'Workplace'>;
 // -------------------- 더미 데이터 --------------------
 const DUMMY_ORDERS: Order[] = [
   {
