@@ -11,8 +11,8 @@ import { RootStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
+import { employmentApi } from '@/api/employment';
 
-// 분리한 컴포넌트들 Import
 import OrderItemCard, { type Order, type OrderStatus } from '@/screens/workplace/OrderItemCard';
 import StatusChangeModal from '@/screens/workplace/StatusChangeModal';
 import WorkplaceFooter from '@/screens/workplace/WorkplaceFooter'; 
@@ -46,19 +46,31 @@ const DUMMY_ORDERS: Order[] = [
 
 const WorkplaceScreen = ({ navigation }: Props) => {
   const route = useRoute();
-  const { restaurantId, restaurantName, startWorkTime, endWorkTime } = route.params as any;
+  const { restaurantId, restaurantName, startWorkTime, endWorkTime, isWorking: initialIsWorking  } = route.params as any;
 
   const [activeTab, setActiveTab] = useState<'PROGRESS' | 'COMPLETED'>('PROGRESS');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PENDING');
 
-  const [isWorking, setIsWorking] = useState(false); // 근무 상태 (API 연동 시 초기값 설정 필요)
-  const handleWorkToggle = () => {
+  const [isWorking, setIsWorking] = useState(initialIsWorking); // 근무 상태 (API 연동 시 초기값 설정 필요)
+  const handleWorkToggle = async () => {
     // TODO: 출퇴근 API 호출 로직
     const nextState = !isWorking;
     console.log(nextState ? '출근 처리' : '퇴근 처리');
-    setIsWorking(nextState);
+    
+
+    try {
+      // setIsLoading(true);
+      const response = await employmentApi.toggleWorkStatus(restaurantId, isWorking ? "END" : "START"); 
+      if (response.success) {
+        setIsWorking(nextState);
+      }
+    } catch (error) {
+      console.error(`${isWorking ? "퇴근" : "출근"}처리 실패: `, error);
+    } finally {
+      // setIsLoading(false);
+    }
   };
 
   const filteredOrders = DUMMY_ORDERS.filter((order) => {
@@ -70,6 +82,7 @@ const WorkplaceScreen = ({ navigation }: Props) => {
   });
 
   const openStatusModal = (order: Order) => {
+    if(order.status == 'CANCELED' || order.status == 'COMPLETED') return; // 완료된 요청건은 상태 변경 못함
     setSelectedOrder(order);
     setSelectedStatus(order.status);
     setModalVisible(true);

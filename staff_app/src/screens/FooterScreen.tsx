@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 interface FooterMenuItemProps {
   iconName: keyof typeof Ionicons.glyphMap;
@@ -36,6 +37,8 @@ const FooterMenuItem = ({ iconName, title, color, onPress }: FooterMenuItemProps
 );
 
 const FooterScreen = () => {
+  const navigation = useNavigation<any>();
+
   return (
     <View style={{ 
       flexDirection: 'row', 
@@ -66,9 +69,13 @@ const FooterScreen = () => {
         iconName="time" 
         title="출퇴근" 
         color="#2962FF" 
-        onPress={() => console.log('출퇴근')} 
+        onPress={() => {
+          navigation.push('Worklog');
+          console.log('출퇴근')}
+        } 
       />
-      <FooterMenuItem 
+      {/* 미구현이여서 주석 */}
+      {/* <FooterMenuItem 
         iconName="calendar" 
         title="일정" 
         color="#00C853" 
@@ -79,7 +86,7 @@ const FooterScreen = () => {
         title="급여" 
         color="#AA00FF" 
         onPress={() => console.log('급여')} 
-      />
+      /> */}
     </View>
   );
 };

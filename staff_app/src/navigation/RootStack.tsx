@@ -7,6 +7,7 @@ import SignupScreen from '@/screens/auth/SignupScreen';
 import HomeScreen from '@/screens/HomeScreen';
 import DetailScreen from '@/screens/DetailScreen';
 import WorkplaceScreen from '@/screens/workplace/WorkplaceScreen';
+import WorklogScreen from '@/screens/worklog/WorklogScreen';
 
 import { TouchableOpacity, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,6 +42,10 @@ const routes: RouteConfig[] = [
   },{ 
     name: 'Workplace', 
     component: WorkplaceScreen,
+    options: { headerShown: false }
+  },{ 
+    name: 'Worklog', 
+    component: WorklogScreen,
     options: { headerShown: false }
   },
 ];

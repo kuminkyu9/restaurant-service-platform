@@ -7,7 +7,9 @@ export type RootStackParamList = {
     restaurantName: string;
     startWorkTime: string;
     endWorkTime: string;
+    isWorking: boolean;
   };  // 주문목록
+  Worklog: undefined;
   // Workplace: undefined;  // 주문목록
   Detail: { id: number; title: string };
 };

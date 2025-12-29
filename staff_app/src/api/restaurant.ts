@@ -19,13 +19,13 @@ export interface MyRestaurantData {
   endWorkTime: string;   // "18:00"
   isManager: boolean;
   hiredAt: string;       // Date string
+  isWorking: boolean;
 }
 
 export const restaurantApi = {
   // 내 근무지(식당) 목록 조회
   // GET /staff/restaurants
   getMyRestaurants: async () => {
-    // client는 이미 baseURL과 인터셉터(토큰 헤더) 설정이 되어 있다고 가정
     const response = await client.get<MyRestaurantResponse>('/staff/restaurants');
     return response.data;
   },

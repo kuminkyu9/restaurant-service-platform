@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,13 +32,10 @@ const HomeScreen = ({ navigation }: Props) => {
         // const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         // 데이터 가공: MyRestaurantData -> UI용 Restaurant 타입으로 변환
         const processedData = response.data.map((item) => {
-          // const isWorking = currentTime >= item.startWorkTime && currentTime <= item.endWorkTime;
-          const isWorking = false;
           return {
             ...item, // 원본 데이터 복사
             id: item.restaurantId.toString(),
             role: item.isManager ? "매니저" : "스태프",
-            isWorking: isWorking, // 가공해서 추가
             // phone: "010-0000-0000", // 현재 전화번호 속성 없음
           };
         });
@@ -50,9 +48,15 @@ const HomeScreen = ({ navigation }: Props) => {
     }
   };
   // 마운트 시 최초 1회
-  useEffect(() => {
-    fetchRestaurants();
-  }, []);
+  // useEffect(() => {
+  //   fetchRestaurants();
+  // }, []);
+  // 화면 진입시 리로드(1초에 10회 같이 호출하는게 아니여서 부담 없을 듯) 글고 출퇴근 그것땜에 임시로 더 최적화 할 수 있긴함
+  useFocusEffect(
+    useCallback(() => {
+      fetchRestaurants();
+    }, [])
+  );
   const sortedRestaurants = [...restaurants].sort((a, b) => 
     (a.isWorking === b.isWorking ? 0 : a.isWorking ? -1 : 1)
   );
@@ -98,16 +102,17 @@ const HomeScreen = ({ navigation }: Props) => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <RestaurantItem item={item} onPress={() => {
             console.log(item);
-            console.log('해당 식당 이동');
+            console.log(`해당 식당 이동`);
             navigation.push('Workplace', {
               restaurantId: item.restaurantId,
               restaurantName: item.restaurantName,
               startWorkTime: item.startWorkTime,
               endWorkTime: item.endWorkTime,
+              isWorking: item.isWorking
             });
           }} />}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1, paddingTop: 10 }}
           ListEmptyComponent={() => (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
               <View style={{ 
