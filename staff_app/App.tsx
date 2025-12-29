@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import RootStack from '@/navigation/RootStack';
 import { AuthProvider } from '@/contexts/AuthContext';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/utils/toastConfig'; 
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
       <NavigationContainer>
         <RootStack />
       </NavigationContainer>
+
+      <Toast config={toastConfig} />
     </AuthProvider>
   );
 }

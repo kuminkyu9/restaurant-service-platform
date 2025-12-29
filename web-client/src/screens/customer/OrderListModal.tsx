@@ -50,7 +50,14 @@ const OrderListModal = ({ isOpen, isRendered, closeModal, orderList }: itemProps
                       <div className="text-sm text-gray-400 mt-0.5">{formatDate(order.createdAt)}</div>
                     </div>
                     <span className="bg-orange-100 text-orange-500 text-xs font-bold px-2.5 py-1 rounded-md">
-                      {order.status}
+                      {
+                        order.status == 'PENDING' ? '접수대기'
+                        : order.status == 'COOKING' ? '조리중'
+                        : order.status == 'SERVED' ? '서빙중'
+                        : order.status == 'COMPLETED' ? '완료'
+                        : order.status == 'CANCELED' ? '취소'
+                        : order.status
+                      }
                     </span>
                   </div>
                   {/* 메뉴 리스트 */}

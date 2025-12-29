@@ -14,6 +14,7 @@ import { RootStackParamList } from '@/types/navigation';
 import { authApi } from '@/api/auth';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '@/contexts/AuthContext';
+import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -57,6 +58,14 @@ const LoginScreen = ({ navigation }: Props) => {
       //   await SecureStore.setItemAsync('refreshToken', data.refreshToken);
       // }
       navigation.replace('Home');
+
+      Toast.show({
+        type: 'success', // 'success' | 'error' | 'info'
+        text1: '로그인 성공',
+        position: 'bottom', // 'top' | 'bottom'
+        visibilityTime: 2000, // 2초 뒤 사라짐
+        bottomOffset: 100,
+      });
     } catch (error: any) {
       console.error(error);
       const message = error.response?.data?.message || '로그인에 실패했습니다.';

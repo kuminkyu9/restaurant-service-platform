@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { type OrderItem } from '@/api/employment'
+import Toast from 'react-native-toast-message';
 
 // 필요한 타입 재정의 (또는 types 파일에서 import)
 export type OrderStatus = 'PENDING' | 'COOKING' | 'SERVED' | 'COMPLETED' | 'CANCELED';
@@ -18,8 +20,11 @@ export interface Order {
 }
 
 interface OrderItemCardProps {
-  item: Order;
-  onStatusChange: (item: Order) => void;
+  item: OrderItem;
+  onStatusChange: (item: OrderItem) => void;
+  isWorking: boolean;
+  // item: Order;
+  // onStatusChange: (item: Order) => void;
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -40,8 +45,24 @@ const getStatusBadgeStyle = (status: OrderStatus) => {
   }
 };
 
-const OrderItemCard = ({ item, onStatusChange }: OrderItemCardProps) => {
+const OrderItemCard = ({ item, onStatusChange, isWorking }: OrderItemCardProps) => {
   const badgeStyle = getStatusBadgeStyle(item.status);
+  const formatOrderTime = (orderTimeStr: string) => {
+    if (!orderTimeStr) return '';
+    try {
+      const now = new Date();
+      const todayStr = `${now.getMonth() + 1}월 ${now.getDate()}일`;
+      // 입력받은 문자열에서 날짜와 시간 분리
+      const parts = orderTimeStr.split(' ');
+      const datePart = `${parts[0]} ${parts[1]}`; // "12월 25일"
+      const timePart = `${parts[2]} ${parts[3]}`; // "오후 11:08"
+      // 오늘 날짜와 비교
+      if (datePart === todayStr) return `오늘 ${timePart}`;
+      return orderTimeStr; // 오늘이 아니면 원래 문자열(12월 25일 오후 11:08) 그대로 반환
+    } catch (e) {
+      return orderTimeStr; // 파싱 에러 시 원본 반환
+    }
+  };
 
   return (
     <View style={{
@@ -80,18 +101,35 @@ const OrderItemCard = ({ item, onStatusChange }: OrderItemCardProps) => {
 
       {/* 카드 푸터: 시간 + 버튼 */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-        <Text style={{ fontSize: 12, color: '#888' }}>요청 시간: {item.orderTime}</Text>
-        <TouchableOpacity 
-          onPress={() => onStatusChange(item)}
-          style={{
-            backgroundColor: '#F5F5F5',
-            paddingHorizontal: 12, paddingVertical: 8,
-            borderRadius: 6,
-            borderWidth: 1, borderColor: '#E0E0E0',
-          }}
-        >
-          <Text style={{ fontSize: 13, color: '#333', fontWeight: '600' }}>상태 변경</Text>
-        </TouchableOpacity>
+        <Text style={{ fontSize: 12, color: '#888' }}>요청 시간: {formatOrderTime(item.orderTime)}</Text>
+        
+        {
+          // 완료건도 테스트 간편하게 하고 싶으면 주석하면댐
+          item.status == 'COMPLETED' || item.status == 'CANCELED' ? <View /> 
+          : <TouchableOpacity 
+            onPress={() => {
+              if(!isWorking) {
+                Toast.show({
+                  type: 'error', // 'success' | 'error' | 'info'
+                  text1: '출근한 후 변경 가능해요',
+                  position: 'bottom', // 'top' | 'bottom'
+                  visibilityTime: 2000, // 2초 뒤 사라짐
+                  bottomOffset: 100,
+                });
+                return;
+              }
+              onStatusChange(item);
+            }}
+            style={{
+              backgroundColor: '#F5F5F5',
+              paddingHorizontal: 12, paddingVertical: 8,
+              borderRadius: 6,
+              borderWidth: 1, borderColor: '#E0E0E0',
+            }}
+          >
+            <Text style={{ fontSize: 13, color: '#333', fontWeight: '600' }}>상태 변경</Text>
+          </TouchableOpacity>
+        }
       </View>
     </View>
   );

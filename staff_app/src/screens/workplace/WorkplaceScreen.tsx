@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import OrderItemCard, { type Order, type OrderStatus } from '@/screens/workplace
 import StatusChangeModal from '@/screens/workplace/StatusChangeModal';
 import WorkplaceFooter from '@/screens/workplace/WorkplaceFooter'; 
 
-import { employmentApi } from '@/api/employment';
+import { employmentApi, type OrderItem } from '@/api/employment';
+import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Workplace'>;
 // -------------------- 더미 데이터 --------------------
@@ -50,7 +51,7 @@ const WorkplaceScreen = ({ navigation }: Props) => {
 
   const [activeTab, setActiveTab] = useState<'PROGRESS' | 'COMPLETED'>('PROGRESS');
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PENDING');
 
   const [isWorking, setIsWorking] = useState(initialIsWorking); // 근무 상태 (API 연동 시 초기값 설정 필요)
@@ -58,13 +59,19 @@ const WorkplaceScreen = ({ navigation }: Props) => {
     // TODO: 출퇴근 API 호출 로직
     const nextState = !isWorking;
     console.log(nextState ? '출근 처리' : '퇴근 처리');
-    
-
     try {
       // setIsLoading(true);
       const response = await employmentApi.toggleWorkStatus(restaurantId, isWorking ? "END" : "START"); 
       if (response.success) {
         setIsWorking(nextState);
+        
+        Toast.show({
+          type: 'success', // 'success' | 'error' | 'info'
+          text1: `${nextState ? '출근' : '퇴근'} 완료`,
+          position: 'bottom', // 'top' | 'bottom'
+          visibilityTime: 2000, // 2초 뒤 사라짐
+          bottomOffset: 100,
+        });
       }
     } catch (error) {
       console.error(`${isWorking ? "퇴근" : "출근"}처리 실패: `, error);
@@ -81,18 +88,102 @@ const WorkplaceScreen = ({ navigation }: Props) => {
     }
   });
 
-  const openStatusModal = (order: Order) => {
+  const openStatusModal = (order: OrderItem) => {
+  // const openStatusModal = (order: Order) => {
     if(order.status == 'CANCELED' || order.status == 'COMPLETED') return; // 완료된 요청건은 상태 변경 못함
     setSelectedOrder(order);
     setSelectedStatus(order.status);
     setModalVisible(true);
   };
 
-  const handleStatusChange = () => {
-    // TODO: API Call Logic Here
+  const handleStatusChange = async () => {
+    if(selectedOrder?.status == selectedStatus) {  // 같은 상태 값일 경우 api 사용 안되게
+      setModalVisible(false);
+      Toast.show({
+        type: 'error', // 'success' | 'error' | 'info'
+        text1: '다른 값을 선택해주세요',
+        position: 'bottom', // 'top' | 'bottom'
+        visibilityTime: 2000, // 2초 뒤 사라짐
+        bottomOffset: 100,
+      });
+      return;
+    }
     console.log(`${restaurantId} 변경: ${selectedOrder?.id} -> ${selectedStatus}`);
-    setModalVisible(false);
+
+    try {
+      if(selectedOrder == null) return; 
+      // setIsLoading(true);
+      const data = {status: selectedStatus};
+      const response = await employmentApi.patchRestaurantOrderStatus(restaurantId, selectedOrder?.id, data);
+      if (response.success) {
+        // 성공 시 로컬 리스트 상태 업데이트
+        setRestaurantOrders((prevOrders) => {
+          // 상태가 바뀌었으므로 리스트에서 해당 주문을 찾아서 status만 변경
+          // (만약 '완료' 탭으로 보내야 하는 로직이라면 filter로 제거해야 함)
+          if (activeTab === 'PROGRESS' && (selectedStatus === 'COMPLETED' || selectedStatus === 'CANCELED')) {
+            // [진행중 탭]에서 [완료/취소]로 바꿨다면 -> 목록에서 제거
+            return prevOrders.filter(order => order.id !== selectedOrder.id);
+          } 
+          else if (activeTab === 'COMPLETED' && (selectedStatus !== 'COMPLETED' && selectedStatus !== 'CANCELED')) {
+             // [완료 탭]에서 [진행중]으로 되돌렸다면 -> 목록에서 제거
+            return prevOrders.filter(order => order.id !== selectedOrder.id);
+          }else {
+            // 같은 탭 내에서 상태만 변경 (예: 대기 -> 조리중)
+            return prevOrders.map(order => 
+              order.id === selectedOrder.id 
+              ? { ...order, status: selectedStatus } // 상태만 교체
+              : order
+            );
+          }
+        });
+
+        Toast.show({
+          type: 'success', // 'success' | 'error' | 'info'
+          text1: `${selectedStatus == 'PENDING' ? '접수대기' 
+            : selectedStatus == 'COOKING' ? '조리중'
+            : selectedStatus == 'SERVED' ? '서빙중'
+            : selectedStatus == 'COMPLETED' ? '완료'
+            : '취소'
+          } 완료`,
+          position: 'bottom', // 'top' | 'bottom'
+          visibilityTime: 2000, // 2초 뒤 사라짐
+          bottomOffset: 100,
+        });
+      } else {
+        console.warn('상태값 변경 실패:', response.message);
+      }
+    } catch (e) {
+      console.error('API Error:', e);
+    } finally {
+      // setIsLoading(false);
+      setModalVisible(false);
+    }
   };
+
+  const [restaurantOrders, setRestaurantOrders] = useState<OrderItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const fetchWorkLogs = async (tabStatus: 'PROGRESS' | 'COMPLETED') => { // active: 요청진행, finished: 요청완료
+    try {
+      setIsLoading(true);
+      const orderStatus = tabStatus == 'PROGRESS' ? 'active' : 'finished'
+      const response = await employmentApi.getRestaurantOrders(restaurantId, orderStatus);
+      if (response.success) {
+        setRestaurantOrders(response.data);
+        console.log('해당 식당 주문 정보 가져오기');
+      } else {
+        console.warn('식당 주문 정보 불러오기 실패:', response.message);
+      }
+    } catch (e) {
+      console.error('API Error:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 마운트시 최초 1회
+  useEffect(() => {
+    fetchWorkLogs(activeTab);
+  }, [activeTab]);  // activeTab 변경될 때마다 실행
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
@@ -148,12 +239,13 @@ const WorkplaceScreen = ({ navigation }: Props) => {
 
       {/* 3. 주문 리스트 */}
       <FlatList
-        data={filteredOrders}
-        keyExtractor={(item) => item.id}
+        data={restaurantOrders}
+        keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <OrderItemCard 
             item={item} 
             onStatusChange={openStatusModal} 
+            isWorking={isWorking} // 출근중일경우에만 테이블 주문 상태 변경 할 수 있게
           />
         )}
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}

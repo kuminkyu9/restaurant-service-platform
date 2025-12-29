@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Order, OrderStatus } from './OrderItemCard';
+import { type OrderItem } from '@/api/employment'
 
 interface StatusChangeModalProps {
   visible: boolean;
-  selectedOrder: Order | null;
+  selectedOrder: OrderItem | null;
   selectedStatus: OrderStatus;
   onClose: () => void;
   onStatusSelect: (status: OrderStatus) => void;

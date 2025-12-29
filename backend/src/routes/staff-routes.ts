@@ -239,4 +239,147 @@ router.get('/work-logs', authenticateToken, async (req: Request, res: Response) 
   }
 });
 
+
+// 특정 식당의 주문 목록 조회 (GET /staff/restaurants/:restaurantId/orders) /staff/restaurants/1/orders?status=active || /staff/restaurants/1/orders?status=finished
+router.get('/restaurants/:restaurantId/orders', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { restaurantId } = req.params;
+    const staffId = req.user?.id;
+    // ?status=active (진행중) / ?status=finished (완료/취소)
+    const { status } = req.query;
+    if (!staffId) return res.status(401).json({ success: false, message: '인증 정보 없음' });
+
+    // 고용 관계 확인 (보안)
+    const employment = await prisma.employment.findUnique({
+      where: {
+        staffId_restaurantId: {
+          staffId: Number(staffId),
+          restaurantId: Number(restaurantId),
+        },
+      },
+    });
+    if (!employment) {
+      return res.status(403).json({ success: false, message: '해당 식당의 접근 권한이 없습니다.' });
+    }
+
+    // 필터 조건 설정
+    let statusFilter = {};
+    if (status === 'active') {
+      // 진행 중: 대기, 조리중, 서빙중
+      statusFilter = { status: { in: ['PENDING', 'COOKING', 'SERVED'] } };
+    } else if (status === 'finished') {
+      // 완료됨: 완료, 취소
+      statusFilter = { status: { in: ['COMPLETED', 'CANCELED'] } };
+    }
+
+    // 주문 조회
+    const orders = await prisma.order.findMany({
+      where: {
+        restaurantId: Number(restaurantId),
+        ...statusFilter,
+      },
+      // 정렬: 최신순 (또는 상태별 정렬도 가능)
+      orderBy: { createdAt: 'desc' },
+      // 포함할 연관 데이터
+      include: {
+        orderItems: {
+          include: {
+            menu: {
+              select: { name: true } // 메뉴 이름만 필요
+            }
+          }
+        }
+      },
+      take: 50, // 너무 많으면 성능 이슈 생기니 최근 50개 제한
+    });
+
+    // 프론트엔드용 데이터 포맷팅 (Flattening)
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      // id: order.id.toString(), // ID는 문자열로 변환 (FlatList key용)
+      tableNumber: order.tableNumber,
+      orderTime: new Date(order.createdAt).toLocaleString('ko-KR', {
+        month: 'long',   // "12월" (숫자만 원하면 '2-digit')
+        day: 'numeric',  // "29일"
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true     // 오전/오후 표시를 위해 true로 설정
+      }), 
+      // orderTime: new Date(order.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }), // "12:30" 형식
+      status: order.status,
+      totalPrice: order.totalPrice,
+      items: order.orderItems.map(item => ({
+        name: item.menu.name,
+        quantity: item.quantity,
+      })),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: '주문 목록 조회 성공',
+      data: formattedOrders,
+    });
+  } catch (error) {
+    console.error('Get Orders Error:', error);
+    return res.status(500).json({ success: false, message: '서버 에러 발생' });
+  }
+});
+
+
+// 주문 상태 변경 (PATCH /staff/restaurants/:restaurantId/orders/:orderId/status)
+router.patch('/restaurants/:restaurantId/orders/:orderId/status', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { restaurantId, orderId } = req.params;
+    const { status } = req.body; // 변경할 상태 (PENDING, COOKING, SERVED, COMPLETED, CANCELED)
+    const staffId = req.user?.id;
+    if (!staffId) return res.status(401).json({ success: false, message: '인증 정보 없음' });
+
+    // 고용 관계 확인 (보안: 남의 식당 주문 건드리면 안됨)
+    const employment = await prisma.employment.findUnique({
+      where: {
+        staffId_restaurantId: {
+          staffId: Number(staffId),
+          restaurantId: Number(restaurantId),
+        },
+      },
+    });
+    if (!employment) {
+      return res.status(403).json({ success: false, message: '해당 식당의 접근 권한이 없습니다.' });
+    }
+
+    // 주문 존재 여부 및 식당 일치 확인
+    const targetOrder = await prisma.order.findUnique({
+      where: { id: Number(orderId) },
+    });
+    if (!targetOrder) {
+      return res.status(404).json({ success: false, message: '주문을 찾을 수 없습니다.' });
+    }
+    if (targetOrder.restaurantId !== Number(restaurantId)) {
+      return res.status(400).json({ success: false, message: '해당 주문은 이 식당의 주문이 아닙니다.' });
+    }
+
+    // 상태 업데이트 실행
+    const updatedOrder = await prisma.order.update({
+      where: { id: Number(orderId) },
+      data: { status: status }, // Prisma가 Enum 타입 체크를 자동으로 해줌
+    });
+    return res.status(200).json({
+      success: true,
+      message: '주문 상태가 변경되었습니다.',
+      data: {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+      },
+    });
+  } catch (error) {
+    console.error('Update Order Status Error:', error);
+    // Prisma Enum 에러 처리 (잘못된 문자열이 들어왔을 때)
+    // if (error.code === 'P2002' || error.message?.includes('valid value')) {
+    //     return res.status(400).json({ success: false, message: '유효하지 않은 주문 상태입니다.' });
+    // }
+    return res.status(500).json({ success: false, message: '서버 에러 발생' });
+  }
+});
+
+
 export default router;
