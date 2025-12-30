@@ -237,11 +237,11 @@ const OwnerMain = () => {
           )}
         </main>
         {/* 스태프 고용 및 확인 */}
-        <StaffModal 
+        {isAddStaffModalOpen && <StaffModal 
           isOpen={isAddStaffModalOpen} 
           onClose={() => setAddStaffModal(false)} 
           restaurantId={selectedRestaurantId}
-        />
+        />}
         <OwnerMainProfileDropDown
           isOpen={isProfile}
           onClose={() => setProfileDropDown(false)}

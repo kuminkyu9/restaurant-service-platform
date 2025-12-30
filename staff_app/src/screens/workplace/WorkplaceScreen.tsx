@@ -19,31 +19,9 @@ import WorkplaceFooter from '@/screens/workplace/WorkplaceFooter';
 import { employmentApi, type OrderItem } from '@/api/employment';
 import Toast from 'react-native-toast-message';
 
+import { useSocketService } from '@/hooks/useSocketService';
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Workplace'>;
-// -------------------- 더미 데이터 --------------------
-const DUMMY_ORDERS: Order[] = [
-  {
-    id: '1',
-    tableNumber: 3,
-    items: [{ name: '김치찌개', quantity: 1 }, { name: '계란말이', quantity: 1 }],
-    orderTime: '12:30',
-    status: 'PENDING',
-  },
-  {
-    id: '2',
-    tableNumber: 5,
-    items: [{ name: '삼겹살 2인분', quantity: 1 }, { name: '공기밥', quantity: 2 }],
-    orderTime: '12:35',
-    status: 'COOKING',
-  },
-  {
-    id: '3',
-    tableNumber: 1,
-    items: [{ name: '된장찌개', quantity: 1 }],
-    orderTime: '12:10',
-    status: 'COMPLETED',
-  },
-];
 
 const WorkplaceScreen = ({ navigation }: Props) => {
   const route = useRoute();
@@ -55,6 +33,9 @@ const WorkplaceScreen = ({ navigation }: Props) => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PENDING');
 
   const [isWorking, setIsWorking] = useState(initialIsWorking); // 근무 상태 (API 연동 시 초기값 설정 필요)
+  // isWorking 값 바뀔때마다. 출근이면 socket연결, 퇴근이면 끊음
+  useSocketService(restaurantId, isWorking); 
+
   const handleWorkToggle = async () => {
     // TODO: 출퇴근 API 호출 로직
     const nextState = !isWorking;
@@ -79,14 +60,6 @@ const WorkplaceScreen = ({ navigation }: Props) => {
       // setIsLoading(false);
     }
   };
-
-  const filteredOrders = DUMMY_ORDERS.filter((order) => {
-    if (activeTab === 'PROGRESS') {
-      return ['PENDING', 'COOKING', 'SERVED'].includes(order.status);
-    } else {
-      return ['COMPLETED', 'CANCELED'].includes(order.status);
-    }
-  });
 
   const openStatusModal = (order: OrderItem) => {
   // const openStatusModal = (order: Order) => {

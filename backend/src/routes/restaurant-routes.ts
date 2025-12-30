@@ -1,211 +1,23 @@
-import { Router, Request, Response } from 'express';
-import prisma from '@/utils/prisma';
+import { Router } from 'express';
+import * as RestaurantController  from '@/controllers/restaurant-controller';
 import { authenticateToken } from '../middlewares/authenticate-token';
-import s3 from '@/utils/s3-client';
 import upload from '@/middlewares/upload';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
 
 const router = Router();
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
-
-// 식당 추가 (POST /restaurants) // 프론트에서 name="image" 파일로 보낸다고 가정
-router.post('/', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
-  try {
-    // 요청 바디에서 식당 정보 가져오기
-    const { name, address, totalTable } = req.body;
-    const file = req.file; // multer가 채워줌
-
-    // 필수 값 체크
-    if (!name || !address || !totalTable) {
-      return res.status(400).json({ 
-        success: false, 
-        message: '식당 이름, 주소, 테이블 개수는 필수입니다.' 
-      });
-    }
-
-    // 토큰에서 사장님 ID 추출 (미들웨어가 심어준 값)
-    const ownerId = req.user?.id;
-    if (!ownerId) {
-      return res.status(401).json({ success: false, message: '사용자 정보를 찾을 수 없습니다.' });
-    }
-
-    let imageUrl: string | null = null;
-    // 이미지 파일이 있을 경우 S3 업로드
-    if (file) {
-      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
-
-      const command = new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: file.buffer,              // 메모리에 올라온 Buffer
-        ContentType: file.mimetype,     // image/png 등
-      });
-
-      await s3.send(command); // S3 업로드[web:59][web:68]
-
-      imageUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    }
-
-    // DB에 식당 생성
-    const newRestaurant = await prisma.restaurant.create({
-      data: {
-        name,
-        address,
-        image: imageUrl, // 이미지는 선택 사항
-        // image: image || null, // 이미지는 선택 사항
-        totalTable: Number(totalTable), // 혹시 문자열로 올 수 있으니 숫자 변환
-        ownerId: ownerId, // 로그인한 사장님 ID로 연결
-      },
-    });
-
-    // 성공 응답
-    return res.status(201).json({
-      success: true,
-      message: '식당이 성공적으로 등록되었습니다.',
-      data: newRestaurant,
-    });
-
-  } catch (error) {
-    console.error('Create Restaurant Error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: '식당 등록 중 오류가 발생했습니다.',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// 식당 추가 (POST /restaurants)
+router.post('/', authenticateToken, upload.single('image'), RestaurantController.postRestaurant);
 
 // 내 식당 목록 조회 (GET /restaurants/my)
-router.get('/my', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const ownerId = req.user?.id;
-
-    const myRestaurants = await prisma.restaurant.findMany({
-      where: { ownerId },
-      orderBy: { createdAt: 'desc' }, // 최신순 정렬
-      // include: { categories: true } // 상점 불러올 때 카테고리도 같이 보여줌
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: '내 식당 목록 조회 성공',
-      data: myRestaurants,
-    });
-
-  } catch (error) {
-    console.error('Get My Restaurants Error:', error);
-    return res.status(500).json({ success: false, message: '서버 에러' });
-  }
-});
+router.get('/my', authenticateToken, RestaurantController.getRestaurants);
 
 // 식당 정보 수정 (PATCH /restaurants/:id)
-router.patch('/:id', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
-  try {
-    const restaurantId = Number(req.params.id); // URL 파라미터에서 식당 ID 가져오기
-    const ownerId = req.user?.id;
-    const { name, address, totalTable } = req.body;
-    const file = req.file;
-
-    // 내 식당인지 확인 (권한 체크)
-    // Prisma의 updateMany를 쓰면 "조건에 맞는 것만 수정"하므로 
-    // 내 식당이 아니면 count가 0이 되어 안전하게 처리 가능하지만,
-    // 명확한 에러 메시지를 위해 findFirst로 먼저 찾음
-    const existingRestaurant = await prisma.restaurant.findFirst({
-      where: { id: restaurantId, ownerId },
-    });
-    if (!existingRestaurant) {
-      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 수정 권한이 없습니다.' });
-    }
-
-    let image: string | null = null;
-    // 이미지 파일이 있을 경우 S3 업로드
-    if (file) {
-      const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
-      const command = new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: file.buffer,              // 메모리에 올라온 Buffer
-        ContentType: file.mimetype,     // image/png 등
-      });
-      await s3.send(command); // S3 업로드[web:59][web:68]
-      image = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    }
-
-    // 업데이트 실행
-    const updatedRestaurant = await prisma.restaurant.update({
-      where: { id: restaurantId },
-      data: {
-        name,      // 값이 undefined면 Prisma가 알아서 무시함 (부분 수정 가능)
-        address,
-        image,
-        totalTable: totalTable ? Number(totalTable) : undefined,
-      },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: '식당 정보가 수정되었습니다.',
-      data: updatedRestaurant,
-    });
-
-  } catch (error) {
-    console.error('Update Restaurant Error:', error);
-    return res.status(500).json({ success: false, message: '식당 수정 중 오류 발생' });
-  }
-});
+router.patch('/:id', authenticateToken, upload.single('image'), RestaurantController.patchRestaurant);
 
 // 식당 삭제 (DELETE /restaurants/:id)
-router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const restaurantId = Number(req.params.id);
-    const ownerId = req.user?.id;
+router.delete('/:id', authenticateToken, RestaurantController.delRestaurant);
 
-    // 1. 권한 체크 (내 식당인가?)
-    const existingRestaurant = await prisma.restaurant.findFirst({
-      where: { id: restaurantId, ownerId },
-    });
-
-    if (!existingRestaurant) {
-      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 삭제 권한이 없습니다.' });
-    }
-
-    // 2. 삭제 실행
-    // 주의: 식당을 지우면 연결된 메뉴, 주문 등은 어떻게 할지 DB 설계(Cascade)에 따름
-    await prisma.restaurant.delete({
-      where: { id: restaurantId },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: '식당이 삭제되었습니다.',
-    });
-
-  } catch (error) {
-    console.error('Delete Restaurant Error:', error);
-    return res.status(500).json({ success: false, message: '식당 삭제 중 오류 발생' });
-  }
-});
-
-// (손님용) 현재 식당 조회 (GET /restaurants/:id)
-router.get('/:id', async (req: Request, res: Response) => {
-  try {
-    const restaurantId = Number(req.params.id);
-
-    const restaurant = await prisma.restaurant.findUnique({
-        where: { id: Number(restaurantId) },
-      });
-
-    return res.status(200).json({
-      success: true,
-      message: '식당 정보 조회 성공',
-      data: restaurant,
-    });
-
-  } catch (error) {
-    console.error('Get My Restaurants Error:', error);
-    return res.status(500).json({ success: false, message: '서버 에러' });
-  }
-});
+// 현재 식당 조회 (GET /restaurants/:id)    단일 식당 정보 가져오는거 손님쪽에 사용중
+router.get('/:id', authenticateToken, RestaurantController.getRestaurant);
 
 export default router;
