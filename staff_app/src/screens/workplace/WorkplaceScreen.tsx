@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,14 @@ const WorkplaceScreen = ({ navigation }: Props) => {
   const { restaurantId, restaurantName, startWorkTime, endWorkTime, isWorking: initialIsWorking  } = route.params as any;
 
   const [activeTab, setActiveTab] = useState<'PROGRESS' | 'COMPLETED'>('PROGRESS');
+
+  // activeTab의 최신 값을 유지하기 위한 ref 추가
+  const activeTabRef = useRef(activeTab);
+  // activeTab이 바뀔 때마다 ref 업데이트
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PENDING');
@@ -55,11 +63,22 @@ const WorkplaceScreen = ({ navigation }: Props) => {
   }, [restaurantId]);
   
   const handleNewOrder = useCallback(() => {
-    // 현재 보고 있는 탭이 '진행 중(PROGRESS)'일 때만 새로고침하는 게 자연스러움
-    if (activeTab === 'PROGRESS') {
+    // ref를 통해 최신 activeTab 값을 확인
+    if (activeTabRef.current === 'PROGRESS') {
+      console.log('새 주문 도착: PROGRESS 탭 갱신');
       fetchWorkLogs('PROGRESS');
+    } else {
+      console.log('새 주문 도착: 현재 COMPLETED 탭이라 무시');
+      // 여기에 "새로운 주문이 도착했습니다" 같은 토스트만 띄워줄 수도 있음
     }
-  }, [activeTab, fetchWorkLogs]); 
+  },[fetchWorkLogs]);
+  // const handleNewOrder = useCallback(() => {
+  //   // 현재 보고 있는 탭이 '진행 중(PROGRESS)'일 때만 새로고침하는 게 자연스러움
+  //   if (activeTab === 'PROGRESS') {
+  //     fetchWorkLogs('PROGRESS');
+  //   }
+  // }, [activeTab, fetchWorkLogs]); 
+
   // isWorking 값 바뀔때마다. 출근이면 socket연결, 퇴근이면 끊음
   useSocketService(restaurantId, isWorking, handleNewOrder); 
   

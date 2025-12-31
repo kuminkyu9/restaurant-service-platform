@@ -1,12 +1,13 @@
 interface DropdownProps {
   isOpen: boolean;
   onClose: () => void;
-  onProfile: () => void;
+  // onProfile: () => void;
   // onSetting: () => void;
   onLogout: () => void;
 }
 
-const OwnerMainProfileDropDown = ({ isOpen, onClose, onProfile, 
+const OwnerMainProfileDropDown = ({ isOpen, onClose, 
+  // onProfile, 
     // onSetting, 
   onLogout }: DropdownProps) => {
   if (!isOpen) return null;
@@ -23,13 +24,15 @@ const OwnerMainProfileDropDown = ({ isOpen, onClose, onProfile,
       <div className="absolute right-0 top-14 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-20 animate-fadeIn">
         
         {/* 헤더: 내 계정 */}
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-4 py-3 ">
+        {/* <div className="px-4 py-3 border-b border-gray-100"> */}
           <span className="text-sm font-medium text-gray-900">내 계정</span>
         </div>
 
         {/* 메뉴 리스트 */}
         <div className="py-1">
-          <button 
+          {/* 프로필 api 미구현 임시 주석 */}
+          {/* <button 
             className="cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
             onClick={onProfile}
           >
@@ -37,7 +40,7 @@ const OwnerMainProfileDropDown = ({ isOpen, onClose, onProfile,
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             프로필
-          </button>
+          </button> */}
 
           {/* <button 
             className="cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"

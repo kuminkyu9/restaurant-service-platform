@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FooterScreen from '@/screens/FooterScreen';
@@ -9,6 +9,7 @@ import { restaurantApi, type MyRestaurantData } from '@/api/restaurant';
 import { useAuth } from '@/contexts/AuthContext'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
+import * as SecureStore from 'expo-secure-store'; // 토큰삭제용
 export interface DisplayRestaurant extends MyRestaurantData {
   id: string;        // FlatList keyExtractor용
   isWorking: boolean;
@@ -18,7 +19,24 @@ export interface DisplayRestaurant extends MyRestaurantData {
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 const HomeScreen = ({ navigation }: Props) => {
-  const { staff } = useAuth();
+  const { staff, setStaff } = useAuth();
+
+  // 로그아웃 처리 함수 (토큰 삭제 + 상태 초기화 + 이동)
+  const handleLogout = async () => {
+    try {
+      await SecureStore.deleteItemAsync('accessToken');
+      // await SecureStore.deleteItemAsync('refreshToken'); // 있으면
+      setStaff(null);
+      
+      // 스택 초기화하면서 로그인 화면으로 이동
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (e) {
+      console.error('로그아웃 처리 실패', e);
+    }
+  };
 
   const [restaurants, setRestaurants] = useState<DisplayRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,8 +59,24 @@ const HomeScreen = ({ navigation }: Props) => {
         });
         setRestaurants(processedData);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("데이터 로딩 실패:", error);
+
+      // 토큰 만료(401) 체크 로직 추가
+      // axios 에러 구조에 따라 error.response?.status 확인
+      const status = error.response?.status;
+      if (status === 401 || status === 403) {
+        Alert.alert(
+          "세션 만료",
+          "로그인 정보가 만료되었습니다. 다시 로그인해주세요.",
+          [
+            { 
+              text: "확인", 
+              onPress: () => handleLogout() 
+            }
+          ]
+        );
+      }
     } finally {
       setIsLoading(false);
     }

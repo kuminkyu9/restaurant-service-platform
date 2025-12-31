@@ -38,10 +38,10 @@ const OwnerMain = () => {
 
   const [isProfile, setIsProfileOpen] = useState(false);
   const setProfileDropDown = (val: boolean) => setIsProfileOpen(val);
-  const profile = () => {
-    console.log('프로필');
-    navigate('/owner/profile-main');
-  }
+  // const profile = () => {
+  //   console.log('프로필');
+  //   navigate('/owner/profile-main');
+  // }
   // const setting = () => {
   //   console.log('설정');
   //   navigate('/owner/profile-main');
@@ -262,7 +262,7 @@ const OwnerMain = () => {
         <OwnerMainProfileDropDown
           isOpen={isProfile}
           onClose={() => setProfileDropDown(false)}
-          onProfile={() => profile()}
+          // onProfile={() => profile()}
           // onSetting={() => setting()}
           onLogout={() => logout()}
         ></OwnerMainProfileDropDown>

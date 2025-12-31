@@ -1,6 +1,7 @@
 import {QRCodeSVG} from 'qrcode.react';
 import { useRef } from 'react';
 import type { Restaurant } from '@restaurant/shared-types/restaurant';
+import { FRONTEND_URL } from '@/constants/env';
 
 interface itemProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface itemProps {
 }
 
 const QrModal = ({ isOpen, isRendered, restaurant, tableNumber, closeModal }: itemProps) => {
-  const targetUrl = `/customer/main?restaurantId=${restaurant.id}&tableNumber=${tableNumber}`;
+  const targetUrl = `${FRONTEND_URL}/customer/main?restaurantId=${restaurant.id}&tableNumber=${tableNumber}`;
   const qrRef = useRef<HTMLDivElement>(null); 
 
   const downloadQrCode = () => {

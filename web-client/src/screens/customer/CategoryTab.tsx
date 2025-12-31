@@ -12,7 +12,9 @@ const CategoryTab = ({ categoryList, activeCategoryId, onTabChange }: itemProps)
   return(
     <div className="px-4 py-4 overflow-x-auto whitespace-nowrap scrollbar-hide bg-white">
       <div className="flex gap-2">
-        {categoryList.map((category, index) => {
+        {categoryList
+        .filter((category) => category.menus && category.menus.length > 0)
+        .map((category, index) => {
           // 현재 카테고리가 활성화된 카테고리인지 확인
           const isActive = category.id === activeCategoryId;
           

@@ -78,6 +78,10 @@ const RestaurantItem = ({ item, onPress }: RestaurantItemProps) => {
               <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>{item.phone}</Text>
             </View> */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+              <Ionicons name="cash-outline" size={14} color="#666" />
+              <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>시급: {item.hourlyWage}</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
               <Ionicons name="person-outline" size={14} color="#666" />
               <Text style={{ fontSize: 13, color: '#666', marginLeft: 6 }}>담당: {item.role}</Text>
             </View>

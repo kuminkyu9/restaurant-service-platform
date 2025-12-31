@@ -26,8 +26,8 @@ const LoginScreen = ({ navigation }: Props) => {
   const [loading, setLoading] = useState(false); // 로딩 상태 추가
 
   const handleSetTmpAccount = () => {
-    setEmail('staff@naver.com');
-    setPassword('staff123!@#');
+    setEmail('staff@test.com');
+    setPassword('qwe123!@#');
   }
 
   const handleLogin = async () => {
