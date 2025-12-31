@@ -13,7 +13,7 @@ const OwnerLogin = () => {
   const navigate = useNavigate();
 
   // useForm 훅 초기화
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>();
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginFormValues>();
 
   const { mutate: login, isPending } = useLogin();
 
@@ -29,10 +29,16 @@ const OwnerLogin = () => {
     login(data);
   }
 
-  const handleWithdrawalClick = () => {
-    console.log('회원탈퇴 이동');
-    navigate('/owner/withdraw');
+  const setTmpAccount = () => {
+    // 데모 계정: <span className="text-gray-600">test@naver.com</span> / <span className="text-gray-600">qwe123!@#</span>
+    setValue('email', 'test@naver.com', { shouldValidate: true });
+    setValue('password', 'qwe123!@#', { shouldValidate: true });
   }
+
+  // const handleWithdrawalClick = () => {
+  //   console.log('회원탈퇴 이동');
+  //   navigate('/owner/withdraw');
+  // }
 
   return (
     <>
@@ -113,16 +119,23 @@ const OwnerLogin = () => {
 
           {/* Demo Account Info */}
           <div className="text-center">
-            <p className="text-xs text-gray-400 pb-4">
+            {/* <p className="text-xs text-gray-400 pb-4">
               데모 계정: <span className="text-gray-600">test@naver.com</span> / <span className="text-gray-600">qwe123!@#</span>
+            </p> */}
+            <p className='pb-4'>
+              <span onClick={() => setTmpAccount()} className="cursor-pointer text-[14px] ">
+                임시 계정 넣기
+              </span>
             </p>
             <p className="text-xs text-gray-400">계정이 없으신가요? <span onClick={() => goSignUpPage()} className="cursor-pointer text-base text-orange-500 hover:underline ml-1 font-medium">회원가입</span></p>
-            <p
+            
+            {/* 현재 관련 테이블 값 있음 안되서 그거 개선 필요 */}
+            {/* <p
               onClick={() => handleWithdrawalClick()}
               className="text-sm text-gray-500 hover:text-gray-700 underline cursor-pointer transition-colors"
             >
               회원탈퇴
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

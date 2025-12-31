@@ -6,9 +6,15 @@ import type { Category, Menu } from '@restaurant/shared-types/restaurant';
 import { useOwnerRestaurantCategoryMenu, useAddMenu, useEditMenu, useDeleteMenu } from '@/hooks/queries/useMenu';
 import MenuSkeleton from '@/components/skeletons/owner/MenuSkeleton';
 import Spinner from '@/screens/Spinner';
+import ConfirmModal from '@/components/ConfirmModal';
 
 const CategoryMain = () => {
   const navigate = useNavigate();
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [deleteRestaurantId, setDeleteRestaurantId] = useState<number | null>(null); // 삭제 대상 ID 저장
+  const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null); // 삭제 대상 ID 저장
+  const [deleteMenuId, setDeleteMenuId] = useState<number | null>(null); // 삭제 대상 ID 저장
 
   const { restaurantId, categoryId } = useParams<{ restaurantId: string, categoryId: string }>();
   // 경로에서 받아온거임
@@ -109,7 +115,24 @@ const CategoryMain = () => {
   const delMenu = (data: Menu) => {
     console.log(data);
     console.log('해당 메뉴 삭제');
-    handleDeleteMenu({restaurantId: category.restaurantId, categoryId: data.categoryId, menuId: data.id});
+    setDeleteRestaurantId(category.restaurantId);
+    setDeleteCategoryId(data.categoryId);
+    setDeleteMenuId(data.id);
+    setIsConfirmModalOpen(true);
+
+    // 더블체크 안했을 경우 아래 
+    // handleDeleteMenu({restaurantId: category.restaurantId, categoryId: data.categoryId, menuId: data.id});
+  }
+
+  const handleDelete = () => {
+    if (deleteRestaurantId !== null && deleteCategoryId !== null && deleteMenuId !== null) {
+      console.log(`삭제 확인:, Restaurant: ${deleteRestaurantId}, Category: ${deleteCategoryId}, Menu: ${deleteMenuId}`);
+      handleDeleteMenu({restaurantId: deleteRestaurantId, categoryId: deleteCategoryId, menuId: deleteMenuId});
+      setDeleteCategoryId(null);
+      setDeleteRestaurantId(null);
+      setDeleteMenuId(null);
+    }
+    setIsConfirmModalOpen(false);
   }
 
   return (
@@ -298,6 +321,18 @@ const CategoryMain = () => {
           </button>
         </div>
       </Modal>
+
+      {/* 삭제시 확인 모달 */}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleDelete}
+        title="메뉴 삭제"
+        message="이 메뉴를 삭제하시겠습니까?"
+        confirmText="네"
+        cancelText="아니오"
+        type="danger"
+      />
     </div>
   );
 };

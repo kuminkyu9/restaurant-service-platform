@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '@/utils/prisma';
+import { deleteS3Images } from '@/utils/s3-client';
 
 // 카테고리 목록 조회 (GET /restaurants/:restaurantId/categories)
 // 카테고리 목록 조회: 손님용 (GET /restaurants/:restaurantId/categories?tableNumber=5)
@@ -60,7 +61,7 @@ export const postCategory = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: '카테고리 이름은 필수입니다.' });
     }
 
-    // 1. 권한 체크: "이 식당이 정말 로그인한 사장님 거냐?"
+    // 권한 체크: 해당식당이 로그인한 사장님껀지
     const restaurant = await prisma.restaurant.findFirst({
       where: { id: Number(restaurantId), ownerId },
     });
@@ -69,7 +70,7 @@ export const postCategory = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: '본인의 식당에만 카테고리를 추가할 수 있습니다.' });
     }
 
-    // 2. 카테고리 생성
+    // 카테고리 생성
     const newCategory = await prisma.category.create({
       data: {
         name,
@@ -98,7 +99,7 @@ export const patchCategory = async (req: Request, res: Response) => {
     const { name } = req.body;
     const ownerId = req.user?.id;
 
-    // 1. 권한 체크 (식당 주인 확인)
+    // 권한 체크 (식당 주인 확인)
     const restaurant = await prisma.restaurant.findFirst({
       where: { id: Number(restaurantId), ownerId },
     });
@@ -107,7 +108,7 @@ export const patchCategory = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: '수정 권한이 없습니다.' });
     }
 
-    // 2. 카테고리 수정
+    // 카테고리 수정
     // where 조건에 restaurantId도 같이 넣어서 더 안전하게 처리
     const updatedCategory = await prisma.category.updateMany({
       where: { 
@@ -140,16 +141,22 @@ export const delCategory = async (req: Request, res: Response) => {
     const { restaurantId, categoryId } = req.params;
     const ownerId = req.user?.id;
 
-    // 1. 권한 체크
+    // 권한 체크
     const restaurant = await prisma.restaurant.findFirst({
       where: { id: Number(restaurantId), ownerId },
     });
-
     if (!restaurant) {
       return res.status(403).json({ success: false, message: '삭제 권한이 없습니다.' });
     }
 
-    // 2. 삭제 실행
+    // 삭제될 메뉴들의 이미지 URL 미리 조회
+    // 카테고리가 삭제되면 같이 날아갈 메뉴들 리스트업
+    const menusToDelete = await prisma.menu.findMany({
+      where: { categoryId: Number(categoryId) },
+      select: { image: true } // 이미지 URL만 가져옴 (가볍게)
+    });
+
+    // 삭제 실행
     // Prisma 스키마에서 onDelete: Cascade 설정했으면 메뉴들도 자동 삭제
     const deleteResult = await prisma.category.deleteMany({
       where: { 
@@ -157,9 +164,20 @@ export const delCategory = async (req: Request, res: Response) => {
         restaurantId: Number(restaurantId)
       },
     });
-
     if (deleteResult.count === 0) {
       return res.status(404).json({ success: false, message: '카테고리를 찾을 수 없습니다.' });
+    }
+
+    // DB 삭제 성공 시, S3 이미지들도 일괄 삭제 (Fire-and-Forget)
+    // image 필드가 null이 아닌 것만 모아서 삭제
+    const imageUrls = menusToDelete
+      .map(m => m.image)
+      .filter((url): url is string => url !== null);
+    if (imageUrls.length > 0) {
+      // await 없이 실행하여 응답 속도 최적화 (로그는 s3-client 내부에서 찍힘)
+      deleteS3Images(imageUrls).catch(err => 
+        console.error("카테고리 삭제 후 S3 이미지 정리 실패:", err)
+      );
     }
 
     return res.status(200).json({

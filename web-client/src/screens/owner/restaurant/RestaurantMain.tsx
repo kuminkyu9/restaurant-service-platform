@@ -9,9 +9,14 @@ import type { Category, Restaurant } from '@restaurant/shared-types/restaurant';
 import { useOwnerRestaurantCategory, useAddCategory, useEditCategory, useDeleteCategory } from '@/hooks/queries/useCategory';
 import CategorySkeleton from '@/components/skeletons/owner/CategorySkeleton';
 import Spinner from '@/screens/Spinner';
+import ConfirmModal from '@/components/ConfirmModal';
 
 const RestaurantMain = () => {
   const navigate = useNavigate();
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [deleteRestaurantId, setDeleteRestaurantId] = useState<number | null>(null); // 삭제 대상 ID 저장
+  const [deleteCategoryId, setDeleteCategoryId] = useState<number | null>(null); // 삭제 대상 ID 저장
 
   const { restaurantId } = useParams<{ restaurantId: string }>();
   // 경로에서 받아온거임
@@ -78,7 +83,22 @@ const RestaurantMain = () => {
   const delCategory = (data: Category) => {
     console.log(data);
     console.log('해당 카테고리 삭제');
-    handleDeleteCategory({restaurantId: data.restaurantId, categoryId: data.id});
+    setDeleteRestaurantId(data.restaurantId);
+    setDeleteCategoryId(data.id);
+    setIsConfirmModalOpen(true);
+
+    // 더블체크 안했을 경우 아래 
+    // handleDeleteCategory({restaurantId: data.restaurantId, categoryId: data.id});
+  }
+
+  const handleDelete = () => {
+    if (deleteRestaurantId !== null && deleteCategoryId !== null) {
+      console.log(`삭제 확인:, Restaurant: ${deleteRestaurantId}, Category: ${deleteCategoryId}`);
+      handleDeleteCategory({restaurantId: deleteRestaurantId, categoryId: deleteCategoryId});
+      setDeleteCategoryId(null);
+      setDeleteRestaurantId(null);
+    }
+    setIsConfirmModalOpen(false);
   }
 
   const moveCategory = (data: Category) => {
@@ -288,6 +308,18 @@ const RestaurantMain = () => {
 
       {/* 바텀 모달 컨테이너 */}
       <QrModal isOpen={isOpen} isRendered={isRendered} restaurant={restaurant} tableNumber={qrTableNumber} closeModal={() => closeModal()} />
+
+      {/* 삭제시 확인 모달 */}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleDelete}
+        title="카테고리 삭제"
+        message="이 카테고리를 삭제하시겠습니까? 메뉴도 삭제됩니다."
+        confirmText="네"
+        cancelText="아니오"
+        type="danger"
+      />
     </div>
   );
 };

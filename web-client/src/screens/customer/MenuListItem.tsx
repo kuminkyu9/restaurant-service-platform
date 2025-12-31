@@ -71,12 +71,24 @@ const MenuListItem = ({ img, name, content, price, moveMenuDetail, put,
 
       className="bg-white rounded-xl p-3 shadow-sm flex h-28 sm:h-32"> {/* 높이를 28(112px)로 줄이고, 큰 화면에서 32로 복귀. 패딩도 p-3으로 축소 */}
       {/* 이미지 영역 */}
-      <div className="h-full aspect-square bg-gray-200 rounded-lg shrink-0 overflow-hidden mr-3"> {/* 마진도 mr-3으로 약간 축소 */}
-        <img 
-          src={img ?? "https://images.unsplash.com/photo-1693429308125-3be7b105ad56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb3JlYW4lMjBiaWJpbWJhcCUyMGZvb2R8ZW58MXx8fHwxNzYzMTA0MjM0fDA&ixlib=rb-4.1.0&q=80&w=1080"} 
-          alt={name} 
-          className="w-full h-full object-cover" 
-        />
+      <div className={`h-full aspect-square bg-gray-200 rounded-lg shrink-0 overflow-hidden mr-3 ${!img ? 'flex items-center justify-center' : ''}`}> {/* 마진도 mr-3으로 약간 축소 */}
+        {
+          !img ? <svg 
+            className="w-10 h-10 text-gray-300" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="1.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9-4.5v16.5m-9-12l9 5.25m9-5.25l-9 5.25M3 16.5l2.25 1.313M21 16.5l-2.25 1.313" />
+            <circle cx="12" cy="12" r="3" />
+          </svg> :
+          <img 
+            src={img} 
+            alt={name} 
+            className="w-full h-full object-cover" 
+          />
+        }
       </div>
       {/* 텍스트 및 버튼 영역 */}
       <div className="flex-1 flex flex-col justify-between min-w-0">

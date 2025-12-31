@@ -6,7 +6,11 @@ import { Vibration, Alert } from 'react-native';
 const SERVER_URL = "http://192.168.200.182:3000"; // 내 pc 
 // const SERVER_URL = "http://localhost:3000"; 
 
-export const useSocketService = (restaurantId: number | null, isWorking: boolean) => {
+export const useSocketService = (
+  restaurantId: number | null, 
+  isWorking: boolean,
+  onNewOrderReceived?: () => void // 리스트 갱신
+) => {
   const socket = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -38,12 +42,23 @@ export const useSocketService = (restaurantId: number | null, isWorking: boolean
       
       // 진동 알림 (패턴: 0.5초 진동, 0.2초 쉼, 0.5초 진동)
       Vibration.vibrate([500, 200, 500]);
+
+      // 수신시 이벤트
+      if (onNewOrderReceived) onNewOrderReceived();
       
       // 알림 창 표시
       Alert.alert(
         "새로운 주문!",
         `${data.tableNumber}번 테이블에서 주문이 들어왔습니다.`,
         [{ text: "확인" }]
+        // [
+        //   { 
+        //     text: "확인", 
+        //     onPress: () => {
+        //       if (onNewOrderReceived) onNewOrderReceived();
+        //     } 
+        //   }
+        // ]
       );
     });
 

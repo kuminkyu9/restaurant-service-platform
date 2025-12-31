@@ -10,9 +10,13 @@ import RestaurantSkeleton from '@/components/skeletons/owner/RestaurantSkeleton'
 import type { Restaurant } from '@restaurant/shared-types/restaurant'; 
 import { useAuthStore } from '@/store/useAuthStore';
 import StaffModal from '@/screens/owner/StaffModal';
+import ConfirmModal from '@/components/ConfirmModal';
 
 const OwnerMain = () => {
   const navigate = useNavigate();
+
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null); // 삭제 대상 ID 저장
 
   const user = useAuthStore((state) => state.user);
 
@@ -131,7 +135,20 @@ const OwnerMain = () => {
   const delRestaurant = (data: Restaurant) => {
     console.log(data);
     console.log('해당 식당 삭제');
-    handleDeleteRestaurant(data.id);
+    setDeleteTargetId(data.id)
+    setIsConfirmModalOpen(true);
+
+    // 더블체크 안했을 경우 아래
+    // handleDeleteRestaurant(data.id);
+  }
+  
+  const handleDelete = () => {
+    if (deleteTargetId !== null) {
+      console.log('삭제 확인:', deleteTargetId);
+      handleDeleteRestaurant(deleteTargetId);
+      setDeleteTargetId(null);
+    }
+    setIsConfirmModalOpen(false);
   }
 
   const moveRestaurant = (data: Restaurant) => {
@@ -361,6 +378,18 @@ const OwnerMain = () => {
             </button>
           </div>
         </Modal>
+
+        {/* 삭제시 확인 모달 */}
+        <ConfirmModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={handleDelete}
+          title="식당 삭제"
+          message="이 식당을 삭제하시겠습니까? 카테고리,메뉴도 삭제됩니다."
+          confirmText="네"
+          cancelText="아니오"
+          type="danger"
+        />
       </div>
     </>
   );

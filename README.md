@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Service Platform    (개발 기간 약 4주)
+# 🍽️ Restaurant Service Platform    (개발 기간 약 5주)
 > **식당 사장님, 손님, 아르바이트 직원을 하나로 잇는 올인원 통합 주문 관리 플랫폼**
 
 <div align="center">

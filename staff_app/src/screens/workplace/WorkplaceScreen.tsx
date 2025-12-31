@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,9 +33,36 @@ const WorkplaceScreen = ({ navigation }: Props) => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('PENDING');
 
   const [isWorking, setIsWorking] = useState(initialIsWorking); // 근무 상태 (API 연동 시 초기값 설정 필요)
-  // isWorking 값 바뀔때마다. 출근이면 socket연결, 퇴근이면 끊음
-  useSocketService(restaurantId, isWorking); 
 
+  const [restaurantOrders, setRestaurantOrders] = useState<OrderItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const fetchWorkLogs = useCallback(async (tabStatus: 'PROGRESS' | 'COMPLETED') => { // active: 요청진행, finished: 요청완료
+    try {
+      setIsLoading(true);
+      const orderStatus = tabStatus == 'PROGRESS' ? 'active' : 'finished'
+      const response = await employmentApi.getRestaurantOrders(restaurantId, orderStatus);
+      if (response.success) {
+        setRestaurantOrders(response.data);
+        console.log('해당 식당 주문 정보 가져오기');
+      } else {
+        console.warn('식당 주문 정보 불러오기 실패:', response.message);
+      }
+    } catch (e) {
+      console.error('API Error:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [restaurantId]);
+  
+  const handleNewOrder = useCallback(() => {
+    // 현재 보고 있는 탭이 '진행 중(PROGRESS)'일 때만 새로고침하는 게 자연스러움
+    if (activeTab === 'PROGRESS') {
+      fetchWorkLogs('PROGRESS');
+    }
+  }, [activeTab, fetchWorkLogs]); 
+  // isWorking 값 바뀔때마다. 출근이면 socket연결, 퇴근이면 끊음
+  useSocketService(restaurantId, isWorking, handleNewOrder); 
+  
   const handleWorkToggle = async () => {
     // TODO: 출퇴근 API 호출 로직
     const nextState = !isWorking;
@@ -133,25 +160,7 @@ const WorkplaceScreen = ({ navigation }: Props) => {
     }
   };
 
-  const [restaurantOrders, setRestaurantOrders] = useState<OrderItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const fetchWorkLogs = async (tabStatus: 'PROGRESS' | 'COMPLETED') => { // active: 요청진행, finished: 요청완료
-    try {
-      setIsLoading(true);
-      const orderStatus = tabStatus == 'PROGRESS' ? 'active' : 'finished'
-      const response = await employmentApi.getRestaurantOrders(restaurantId, orderStatus);
-      if (response.success) {
-        setRestaurantOrders(response.data);
-        console.log('해당 식당 주문 정보 가져오기');
-      } else {
-        console.warn('식당 주문 정보 불러오기 실패:', response.message);
-      }
-    } catch (e) {
-      console.error('API Error:', e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   // 마운트시 최초 1회
   useEffect(() => {

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '@/utils/prisma';
 import s3 from '@/utils/s3-client';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { deleteS3Image, deleteS3Images } from '@/utils/s3-client';
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
@@ -139,10 +140,16 @@ export const patchRestaurant = async (req: Request, res: Response) => {
       data: {
         name,      // 값이 undefined면 Prisma가 알아서 무시함 (부분 수정 가능)
         address,
-        image,
+        // image,
+        image: image || undefined, // image가 없으면 undefined를 넣어 업데이트 대상에서 제외
         totalTable: totalTable ? Number(totalTable) : undefined,
       },
     });
+
+    // 이미지 있으면 aws s3 이미지 삭제
+    if(file && existingRestaurant.image) {
+      deleteS3Image(existingRestaurant.image).catch(err => console.error("S3 기존 이미지 삭제 실패:", err));
+    }
 
     return res.status(200).json({
       success: true,
@@ -164,20 +171,50 @@ export const delRestaurant = async (req: Request, res: Response) => {
     const restaurantId = Number(req.params.id);
     const ownerId = req.user?.id;
 
-    // 1. 권한 체크 (내 식당인가?)
+    // 권한 체크 (사장식당) 삭제될 이미지 url들 미리 조회
+    // 식당정보 + 식당에 속한 카테고리의 메뉴들의 이미지
     const existingRestaurant = await prisma.restaurant.findFirst({
       where: { id: restaurantId, ownerId },
+      include: {
+        categories: {
+          include: {
+            menus: {
+              select: {image: true}
+            }
+          }
+        }
+      }
     });
-
     if (!existingRestaurant) {
       return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 삭제 권한이 없습니다.' });
     }
 
-    // 2. 삭제 실행
-    // 주의: 식당을 지우면 연결된 메뉴, 주문 등은 어떻게 할지 DB 설계(Cascade)에 따름
+    const imagesToDelete: string[] = [];
+    // 식당 이미지
+    if (existingRestaurant.image) {
+      imagesToDelete.push(existingRestaurant.image);
+    }
+    // 모든 메뉴 이미지 수집
+    existingRestaurant.categories.forEach(category => {
+      category.menus.forEach(menu => {
+        if (menu.image) {
+          imagesToDelete.push(menu.image);
+        }
+      });
+    });
+
+    // 삭제 실행  (식당을 지우면 연결된 카테고리, 메뉴는 cascade로 삭제됨)
     await prisma.restaurant.delete({
       where: { id: restaurantId },
     });
+
+    // S3 이미지 일괄 삭제 (비동기 Fire-and-Forget)
+    if (imagesToDelete.length > 0) {
+      console.log('식당 관련 이미지 삭제');
+      deleteS3Images(imagesToDelete).catch(err => 
+        console.error(`식당(ID:${restaurantId}) 삭제 후 S3 정리 실패:`, err)
+      );
+    }
 
     return res.status(200).json({
       success: true,
