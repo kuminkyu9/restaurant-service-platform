@@ -5,18 +5,21 @@ import prisma from '@/utils/prisma';
 export const getStaffRestaurant = async (req: Request, res: Response) => {
 // router.get('/restaurants', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // 1. 토큰에서 로그인한 직원 ID 추출
+    // 토큰에서 로그인한 직원 ID 추출
     const staffId = req.user?.id;
-
     if (!staffId) {
       return res.status(401).json({ success: false, message: '인증 정보가 없습니다.' });
     }
 
-    // 2. Employment 테이블을 조회 (내 staffId가 있는 것들)
+    // Employment 테이블을 조회 (내 staffId가 있는 것들)
     // 식당 정보(Restaurant)를 include로 가져옴
     const myEmployments = await prisma.employment.findMany({
       where: {
         staffId: staffId,
+        deletedAt: null,  // 해고/퇴사 여부 확인
+        restaurant: {
+          deletedAt: null,  // 삭제여부 확인
+        }
       },
       include: {
         restaurant: {
@@ -65,7 +68,6 @@ export const getStaffRestaurant = async (req: Request, res: Response) => {
       message: '내 근무지 목록 조회 성공',
       data: data,
     });
-
   } catch (error) {
     console.error('Get My Restaurants Error:', error);
     return res.status(500).json({ 

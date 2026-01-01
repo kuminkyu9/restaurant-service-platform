@@ -50,6 +50,9 @@ model Restaurant {
   totalTable Int      @map("total_table") // 식당 전체 테이블 개수
   createdAt  DateTime @default(now()) @map("created_at")
 
+  // 이 값이 null이면 정상 식당, 값이 있으면 삭제된 식당
+  deletedAt DateTime? @map("deleted_at")
+
   ownerId Int   @map("owner_id")
   owner   Owner @relation(fields: [ownerId], references: [id])
 
@@ -68,6 +71,9 @@ model Employment {
   endWorkTime   String   @map("end_work_time") // 퇴근 시간 (예: "18:00")
   isManager     Boolean  @default(false) @map("is_manager") // 매니저 권한 여부
   createdAt     DateTime @default(now()) @map("created_at")
+
+  // null 이면 고용유지 중, 값이 있으면 해당 날짜가 해고|퇴사 날짜
+  deletedAt DateTime? @map("deleted_at")
 
   staffId      Int        @map("staff_id")
   staff        Staff      @relation(fields: [staffId], references: [id])
@@ -103,8 +109,12 @@ model Category {
   name      String
   createdAt DateTime @default(now()) @map("created_at")
 
+  // 이 값이 null이면 정상 유형, 값이 있으면 삭제된 유형
+  deletedAt DateTime? @map("deleted_at")
+
   restaurantId Int        @map("restaurant_id")
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade) // 식당 삭제되면 연계 삭제
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id]) // 식당 soft 삭제 적용해서 cascade 없애도 될듯
+  // restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade) // 식당 삭제되면 연계 삭제
 
   menus Menu[]
 
@@ -120,8 +130,12 @@ model Menu {
   image       String? // 이미지 파일을 DB에 직접 저장하지 않고, AWS S3 같은 객체 스토리지 서비스에 저장 후 접근 가능한 URL만 저장 (스토리지 부하 및 성능 최적화 목적)
   createdAt   DateTime @default(now()) @map("created_at")
 
+  // 이 값이 null이면 판매 메뉴, 값이 있으면 삭제된 메뉴
+  deletedAt DateTime? @map("deleted_at")
+
   categoryId Int      @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // 음식 유형 삭제시 연계 삭제
+  category   Category @relation(fields: [categoryId], references: [id]) // soft 삭제 방식으로 변경해서 cascade 없앰
+  // category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // 음식 유형 삭제시 연계 삭제
 
   // 주문된 내역 (통계를 위해 연결)
   orderItems OrderItem[]

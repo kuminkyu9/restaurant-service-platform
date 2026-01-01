@@ -197,7 +197,8 @@ export const postLoginOwner = async (req: Request, res: Response) => {
 };
 // });
 
-// 사장님 회원 탈퇴 (DELETE /auth/owner/withdraw)
+// 사장님 회원 탈퇴 (DELETE /auth/owner/withdraw)   
+// !!!! !!!! 이거 사용하려면 soft 삭제 부분 적용해야함 restaurant, category, menu 등 연관 테이블 싹다 soft delete 적용필요
 export const delWithdrawOwner = async (req: Request, res: Response) => {
 // router.delete('/owner/withdraw', async (req: Request, res: Response) => {
   try {

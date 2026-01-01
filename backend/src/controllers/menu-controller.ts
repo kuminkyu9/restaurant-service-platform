@@ -13,7 +13,10 @@ export const getMenus = async (req: Request, res: Response) => {
     const { categoryId } = req.params;
 
     const menus = await prisma.menu.findMany({
-      where: { categoryId: Number(categoryId) },
+      where: { 
+        categoryId: Number(categoryId),
+        deletedAt: null,  // 삭제여부 확인
+      },
       orderBy: { createdAt: 'desc' }, // 최신순 정렬
     });
 
@@ -178,24 +181,32 @@ export const delMenu = async (req: Request, res: Response) => {
       where: {
         id: Number(menuId),
         categoryId: Number(categoryId),
+        deletedAt: null,  // 삭제여부 확인
         category: {
           restaurantId: Number(restaurantId),
-          restaurant: { ownerId: ownerId }
+          restaurant: { 
+            ownerId: ownerId,
+            deletedAt: null,  // 삭제여부 확인
+          }
         }
       }
     });
-
     if (!menu) {
       return res.status(403).json({ success: false, message: '삭제 권한이 없거나 메뉴를 찾을 수 없습니다.' });
     }
 
-    // 메뉴 삭제
-    await prisma.menu.delete({
+    // Soft Delete 실행 (+ 이미지 링크 제거)
+    await prisma.menu.update({
       where: { id: Number(menuId) },
+      data: { 
+        deletedAt: new Date(),
+        image: null // S3에서 지울 거니까 DB에서도 지움
+      },
     });
 
     // 이미지 있으면 aws s3 이미지 삭제
     if(menu.image) {
+      console.log(`메뉴(ID:${menuId}) 삭제: 이미지 파일 삭제 시도`);
       deleteS3Image(menu.image).catch(err => console.error("S3 기존 이미지 삭제 실패:", err));
     }
 
@@ -203,7 +214,6 @@ export const delMenu = async (req: Request, res: Response) => {
       success: true,
       message: '메뉴가 삭제되었습니다.',
     });
-
   } catch (error) {
     console.error('Delete Menu Error:', error);
     return res.status(500).json({ success: false, message: '서버 에러' });

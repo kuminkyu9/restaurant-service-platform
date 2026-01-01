@@ -82,7 +82,10 @@ export const getRestaurants = async (req: Request, res: Response) => {
     const ownerId = req.user?.id;
 
     const myRestaurants = await prisma.restaurant.findMany({
-      where: { ownerId },
+      where: { 
+        ownerId,
+        deletedAt: null,  // 삭제여부 확인
+      },
       orderBy: { createdAt: 'desc' }, // 최신순 정렬
       // include: { categories: true } // 상점 불러올 때 카테고리도 같이 보여줌
     });
@@ -164,7 +167,7 @@ export const patchRestaurant = async (req: Request, res: Response) => {
 };
 // });
 
-// 식당 삭제 (DELETE /restaurants/:id)
+// 식당 삭제 (DELETE /restaurants/:id)  soft 삭제지만 s3 이미지는 지움(폐업 처리 느낌, 복구 안됨)
 export const delRestaurant = async (req: Request, res: Response) => {
 // router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
@@ -174,7 +177,11 @@ export const delRestaurant = async (req: Request, res: Response) => {
     // 권한 체크 (사장식당) 삭제될 이미지 url들 미리 조회
     // 식당정보 + 식당에 속한 카테고리의 메뉴들의 이미지
     const existingRestaurant = await prisma.restaurant.findFirst({
-      where: { id: restaurantId, ownerId },
+      where: { 
+        id: restaurantId, 
+        ownerId,
+        deletedAt: null,  // 삭제여부 확인
+      },
       include: {
         categories: {
           include: {
@@ -186,7 +193,7 @@ export const delRestaurant = async (req: Request, res: Response) => {
       }
     });
     if (!existingRestaurant) {
-      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 삭제 권한이 없습니다.' });
+      return res.status(404).json({ success: false, message: '식당을 찾을 수 없거나 이미 삭제되었습니다.' });
     }
 
     const imagesToDelete: string[] = [];
@@ -203,22 +210,54 @@ export const delRestaurant = async (req: Request, res: Response) => {
       });
     });
 
-    // 삭제 실행  (식당을 지우면 연결된 카테고리, 메뉴는 cascade로 삭제됨)
-    await prisma.restaurant.delete({
-      where: { id: restaurantId },
+    await prisma.$transaction(async (tx) => {
+      const now = new Date();
+
+      // 식당 Soft Delete
+      await tx.restaurant.update({
+        where: { id: restaurantId },
+        data: { 
+          deletedAt: now,
+          image: null // 이미지는 S3에서 지울 거니까 DB에서도 null로 밀어주는 게 깔끔함 (선택사항)
+        },
+      });
+
+      // 카테고리 Soft Delete
+      await tx.category.updateMany({
+        where: { restaurantId: restaurantId, deletedAt: null },
+        data: { deletedAt: now },
+      });
+
+      // 메뉴 Soft Delete (카테고리 ID 기반)
+      const categoryIds = existingRestaurant.categories.map(c => c.id);
+      if (categoryIds.length > 0) {
+        await tx.menu.updateMany({
+          where: { categoryId: { in: categoryIds }, deletedAt: null },
+          data: { 
+            deletedAt: now,
+            image: null // 이미지 링크 제거
+          },
+        });
+      }
+
+      // 고용 관계 종료
+      await tx.employment.updateMany({
+        where: { restaurantId: restaurantId, deletedAt: null },
+        data: { deletedAt: now }
+      });
     });
 
     // S3 이미지 일괄 삭제 (비동기 Fire-and-Forget)
     if (imagesToDelete.length > 0) {
-      console.log('식당 관련 이미지 삭제');
+      console.log(`식당(ID:${restaurantId}) 폐업 처리: 관련 이미지 ${imagesToDelete.length}장 삭제 시도`);
       deleteS3Images(imagesToDelete).catch(err => 
-        console.error(`식당(ID:${restaurantId}) 삭제 후 S3 정리 실패:`, err)
+        console.error(`S3 이미지 삭제 실패:`, err)
       );
     }
 
     return res.status(200).json({
       success: true,
-      message: '식당이 삭제되었습니다.',
+      message: '식당이 폐업 처리되었습니다.',
     });
 
   } catch (error) {
@@ -234,9 +273,18 @@ export const getRestaurant = async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id);
 
-    const restaurant = await prisma.restaurant.findUnique({
-        where: { id: Number(restaurantId) },
-      });
+    // const restaurant = await prisma.restaurant.findUnique({
+    //   where: { id: Number(restaurantId) },
+    // });
+    const restaurant = await prisma.restaurant.findFirst({  // findUnique는 유니크 속성만 넣을 수 있어서 바꿈
+      where: { 
+        id: restaurantId,
+        deletedAt: null   // 삭제여부 확인
+      },
+    });
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: '존재하지 않거나 운영이 종료된 식당입니다.' });
+    }
 
     return res.status(200).json({
       success: true,

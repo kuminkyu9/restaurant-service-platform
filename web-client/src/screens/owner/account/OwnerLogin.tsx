@@ -30,8 +30,8 @@ const OwnerLogin = () => {
   }
 
   const setTmpAccount = () => {
-    // 데모 계정: <span className="text-gray-600">test@naver.com</span> / <span className="text-gray-600">qwe123!@#</span>
-    setValue('email', 'test@naver.com', { shouldValidate: true });
+    // 데모 계정: <span className="text-gray-600">owner@test.com</span> / <span className="text-gray-600">qwe123!@#</span>
+    setValue('email', 'owner@test.com', { shouldValidate: true });
     setValue('password', 'qwe123!@#', { shouldValidate: true });
   }
 

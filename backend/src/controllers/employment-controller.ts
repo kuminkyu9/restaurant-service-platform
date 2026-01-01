@@ -5,50 +5,37 @@ import prisma from '@/utils/prisma';
 export const postEmploymentStaff = async (req: Request, res: Response) => {
 // router.post('/:restaurantId', authenticateToken, async (req: Request, res: Response) => {
   try {
-    // 1. 파라미터 및 바디 데이터 수신
     const { restaurantId } = req.params;
     const ownerId = req.user?.id;
-    
-    // UI 모달에 있는 입력값들
     const { email, hourlyWage, startWorkTime, endWorkTime, isManager } = req.body;
 
-    // 2. 필수 값 검증
+    // 필수 값 검증
     if (!email || !hourlyWage || !startWorkTime || !endWorkTime) {
-      return res.status(400).json({ 
-        success: false, 
-        message: '스태프 이메일, 시급, 근무 시간은 필수입니다.' 
-      });
+      return res.status(400).json({ success: false, message: '스태프 이메일, 시급, 근무 시간은 필수입니다.' });
     }
 
-    // 3. 권한 체크: 요청자가 이 식당의 주인(Owner)이 맞는지 확인
+    // 권한 체크: 요청자가 이 식당의 주인(Owner)이 맞는지 확인
     const restaurant = await prisma.restaurant.findFirst({
       where: {
         id: Number(restaurantId),
         ownerId: ownerId,
+        deletedAt: null,  // 폐업한 식당엔 고용 불가
       },
     });
-
     if (!restaurant) {
-      return res.status(403).json({ 
-        success: false, 
-        message: '식당 주인만 스태프를 고용할 수 있습니다.' 
-      });
+      return res.status(403).json({ success: false, message: '권한이 없거나 운영 중인 식당이 아닙니다.' });
     }
 
-    // 4. 스태프 계정 찾기 (이메일로 조회)
+    // 스태프 계정 찾기 (이메일로 조회)
     // 스태프가 먼저 'Staff' 앱이나 웹을 통해 회원가입이 되어 있어야 고용 가능
     const staff = await prisma.staff.findUnique({
       where: { email: email },
     });
-
     if (!staff) {
-      return res.status(404).json({ 
-        success: false, 
-        message: '해당 이메일을 가진 스태프 계정을 찾을 수 없습니다. 먼저 회원가입을 요청해주세요.' 
-      });
+      return res.status(404).json({ success: false, message: '해당 이메일을 가진 스태프 계정을 찾을 수 없습니다. 먼저 회원가입을 요청해주세요.' });
     }
 
-    // 5. 중복 고용 체크
+    // 중복 고용 체크
     // 이미 이 식당에 고용된 스태프인지 확인 (Prisma 모델의 @@unique([staffId, restaurantId]) 제약 관련)
     const existingEmployment = await prisma.employment.findUnique({
       where: {
@@ -59,36 +46,51 @@ export const postEmploymentStaff = async (req: Request, res: Response) => {
       },
     });
 
+    let resultEmployment;
+    // 신규 고용, 재고용, 중복 에러
     if (existingEmployment) {
-      return res.status(409).json({ 
-        success: false, 
-        message: '이미 이 식당에 등록된 스태프입니다.' 
+      // (1) 이미 근무 중인 경우 (deletedAt 없음)
+      if (!existingEmployment.deletedAt) {
+        return res.status(409).json({ success: false, message: '이미 이 식당에 근무 중인 스태프입니다.' });
+      }
+      // (2) 과거에 해고/퇴사했으나 다시 고용하는 경우 (재고용)
+      // 기존 레코드를 부활시키면서 근무 조건 업데이트
+      resultEmployment = await prisma.employment.update({
+        where: { id: existingEmployment.id },
+        data: {
+          deletedAt: null, // null로 초기화
+          hourlyWage: Number(hourlyWage),
+          startWorkTime,
+          endWorkTime,
+          isManager: !!isManager,
+          createdAt: new Date(), // 재고용 시점을 입사일로 갱신
+        },
+        include: {
+          staff: { select: { name: true, email: true } }
+        }
+      });
+    }else {
+      // (3) 아예 처음 고용하는 경우 (신규 생성)
+      resultEmployment = await prisma.employment.create({
+        data: {
+          restaurantId: Number(restaurantId),
+          staffId: staff.id,
+          hourlyWage: Number(hourlyWage),
+          startWorkTime,
+          endWorkTime,
+          isManager: !!isManager,
+        },
+        include: {
+          staff: { select: { name: true, email: true } }
+        }
       });
     }
 
-    // 6. 고용(Employment) 레코드 생성
-    const newEmployment = await prisma.employment.create({
-      data: {
-        restaurantId: Number(restaurantId),
-        staffId: staff.id,
-        hourlyWage: Number(hourlyWage),
-        startWorkTime,
-        endWorkTime,
-        isManager: !!isManager, // boolean 강제 형변환 (undefined 방지)
-      },
-      include: {
-        staff: {
-          select: { name: true, email: true } // 응답에 스태프 이름 포함 (UI 갱신용)
-        }
-      }
-    });
-
     return res.status(201).json({
       success: true,
-      message: '스태프가 성공적으로 등록되었습니다.',
-      data: newEmployment,
+      message: existingEmployment ? '스태프가 재고용되었습니다.' : '스태프가 신규 등록되었습니다.',
+      data: resultEmployment,
     });
-
   } catch (error) {
     console.error('Create Employment Error:', error);
     return res.status(500).json({ 
@@ -157,11 +159,12 @@ export const getEmploymentStaffs = async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const ownerId = req.user?.id;
-    // 1. 권한 체크 (내 식당인지) 식당 자체가 존재하는지, 그리고 내 소유인지 먼저 확인
+    // 권한 체크 (내 식당인지) 식당 자체가 존재하는지, 그리고 내 소유인지 먼저 확인
     const restaurant = await prisma.restaurant.findFirst({
       where: {
         id: Number(restaurantId),
         ownerId: ownerId,
+        deletedAt: null,  // 삭제여부 확인
       },
     });
     if (!restaurant) {
@@ -170,10 +173,12 @@ export const getEmploymentStaffs = async (req: Request, res: Response) => {
         message: `조회 권한이 없거나 존재하지 않는 식당입니다. ${restaurantId}, ${ownerId}` 
       });
     }
-    // 2. 고용 목록 조회 (스태프 정보 포함)
+
+    // 고용 목록 조회 (스태프 정보 포함)
     const employments = await prisma.employment.findMany({
       where: {
         restaurantId: Number(restaurantId),
+        deletedAt: null,  // 삭제여부 확인
       },
       // Staff 테이블을 조인해서 이름과 이메일을 가져옴
       include: {
@@ -190,6 +195,7 @@ export const getEmploymentStaffs = async (req: Request, res: Response) => {
         createdAt: 'desc', // 최신 고용 순으로 정렬
       },
     });
+
     return res.status(200).json({
       success: true,
       message: '스태프 목록 조회 성공',
@@ -208,22 +214,35 @@ export const delEmploymentStaff = async (req: Request, res: Response) => {
   try {
     const employmentId = Number(req.params.employmentId);
     const ownerId = req.user?.id;
+
+    // 권한 체크 (이미 해고된 직원인지도 확인)
     const existingEmployment = await prisma.employment.findFirst({
-      where: { id: employmentId, restaurant: {ownerId: ownerId} },
+      where: { 
+        id: employmentId,
+        deletedAt: null,  // 삭제여부 확인 
+        restaurant: {
+          ownerId: ownerId,
+          deletedAt: null,  // 식당 삭제여부 확인
+        } 
+      },
     });
     if (!existingEmployment) {
       return res.status(404).json({ success: false, message: '고용정보를 찾을 수 없거나 삭제 권한이 없습니다.' });
     }
-    await prisma.employment.delete({
+
+    // Soft Delete (해고 처리)
+    await prisma.employment.update({
       where: { id: employmentId },
+      data: { deletedAt: new Date() },
     });
+
     return res.status(200).json({
       success: true,
-      message: '스태프 고용정보가 삭제되었습니다.',
+      message: '스태프 고용정보가 종료되었습니다.',
     });
   } catch (error) {
     console.error('Delete Employments Error:', error);
-    return res.status(500).json({ success: false, message: '스태프 고용정보 삭제 중 오류 발생' });
+    return res.status(500).json({ success: false, message: '스태프 고용정보 종료 중 오류 발생' });
   }
 };
 // });

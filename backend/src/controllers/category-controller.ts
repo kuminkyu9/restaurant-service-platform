@@ -11,9 +11,17 @@ export const getCategoryMenus = async (req: Request, res: Response) => {
     const { tableNumber } = req.query;
 
     if(tableNumber) {
-      const restaurant = await prisma.restaurant.findUnique({
-        where: { id: Number(restaurantId) },
-        select: { totalTable: true } // totalTable 필드만 선택해서 최적화
+      // const restaurant = await prisma.restaurant.findUnique({
+      //   where: { id: Number(restaurantId) },
+      //   select: { totalTable: true } // totalTable 필드만 선택해서 최적화
+      // });
+      // findUnique -> findFirst로 변경 (삭제된 식당 제외 조건 추가)
+      const restaurant = await prisma.restaurant.findFirst({
+        where: { 
+          id: Number(restaurantId),
+          deletedAt: null   // 삭제여부 확인
+        },
+        select: { totalTable: true }
       });
       if (!restaurant) {
         return res.status(404).json({ success: false, message: '식당을 찾을 수 없습니다.' });
@@ -29,9 +37,13 @@ export const getCategoryMenus = async (req: Request, res: Response) => {
     }
 
     const categories = await prisma.category.findMany({
-      where: { restaurantId: Number(restaurantId) },
+      where: { 
+        restaurantId: Number(restaurantId),
+        deletedAt: null,    // 삭제여부 확인
+      },
       include: tableNumber ? {   // 카테고리 불러올 때 메뉴도 같이 보여줌 
         menus: {
+          where: {deletedAt: null}, // 삭제된 메뉴 확인
           orderBy: { createdAt: 'desc' }
         }
       } : null,
@@ -143,46 +155,64 @@ export const delCategory = async (req: Request, res: Response) => {
 
     // 권한 체크
     const restaurant = await prisma.restaurant.findFirst({
-      where: { id: Number(restaurantId), ownerId },
-    });
-    if (!restaurant) {
-      return res.status(403).json({ success: false, message: '삭제 권한이 없습니다.' });
-    }
-
-    // 삭제될 메뉴들의 이미지 URL 미리 조회
-    // 카테고리가 삭제되면 같이 날아갈 메뉴들 리스트업
-    const menusToDelete = await prisma.menu.findMany({
-      where: { categoryId: Number(categoryId) },
-      select: { image: true } // 이미지 URL만 가져옴 (가볍게)
-    });
-
-    // 삭제 실행
-    // Prisma 스키마에서 onDelete: Cascade 설정했으면 메뉴들도 자동 삭제
-    const deleteResult = await prisma.category.deleteMany({
       where: { 
-        id: Number(categoryId),
-        restaurantId: Number(restaurantId)
+        id: Number(restaurantId), 
+        ownerId,
+        deletedAt: null,
       },
     });
-    if (deleteResult.count === 0) {
-      return res.status(404).json({ success: false, message: '카테고리를 찾을 수 없습니다.' });
+    if (!restaurant) {
+      return res.status(403).json({ success: false, message: '삭제 권한이 없거나 식당을 찾을 수 없습니다.' });
     }
 
-    // DB 삭제 성공 시, S3 이미지들도 일괄 삭제 (Fire-and-Forget)
-    // image 필드가 null이 아닌 것만 모아서 삭제
-    const imageUrls = menusToDelete
+    // 카테고리 조회 및 삭제될 메뉴 이미지 URL 확보
+    const category = await prisma.category.findFirst({
+      where: {
+        id: Number(categoryId),
+        restaurantId: Number(restaurantId),
+        deletedAt: null 
+      },
+      include: {
+        menus: { select: { image: true } } // 하위 메뉴들의 이미지 URL 수집
+      }
+    });
+    if (!category) {
+      return res.status(404).json({ success: false, message: '카테고리를 찾을 수 없거나 이미 삭제되었습니다.' });
+    }
+
+    // 트랜잭션으로 Soft Delete 실행 (카테고리 + 하위 메뉴)
+    await prisma.$transaction(async (tx) => {
+      const now = new Date();
+      // (1) 카테고리 Soft Delete
+      await tx.category.update({
+        where: { id: Number(categoryId) },
+        data: { deletedAt: now },
+      });
+      // (2) 하위 메뉴들 Soft Delete
+      await tx.menu.updateMany({
+        where: { categoryId: Number(categoryId), deletedAt: null },
+        data: { 
+          deletedAt: now,
+          image: null // S3에서 지울 거니까 DB 연결도 끊음
+        },
+      });
+    });
+
+    // 이미지 실제 삭제 (DB 트랜잭션 성공 후 실행)
+    const imageUrls = category.menus
       .map(m => m.image)
       .filter((url): url is string => url !== null);
     if (imageUrls.length > 0) {
-      // await 없이 실행하여 응답 속도 최적화 (로그는 s3-client 내부에서 찍힘)
+      console.log(`카테고리(ID:${categoryId}) 삭제: 하위 메뉴 이미지 ${imageUrls.length}장 삭제 시도`);
+      // 비동기 실행 (응답 대기 X)
       deleteS3Images(imageUrls).catch(err => 
-        console.error("카테고리 삭제 후 S3 이미지 정리 실패:", err)
+        console.error("S3 이미지 삭제 실패:", err)
       );
     }
 
     return res.status(200).json({
       success: true,
-      message: '카테고리가 삭제되었습니다.',
+      message: '카테고리와 하위 메뉴가 삭제되었습니다.',
     });
 
   } catch (error) {
