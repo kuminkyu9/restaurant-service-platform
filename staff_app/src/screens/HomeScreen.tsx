@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }: Props) => {
 
   const [restaurants, setRestaurants] = useState<DisplayRestaurant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false); // 새로고침
 
   const fetchRestaurants = async () => {
     try {
@@ -79,8 +80,16 @@ const HomeScreen = ({ navigation }: Props) => {
       }
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
+
+  // 당겨서 새로고침
+  const onRefresh = async () => {
+    setRefreshing(true); // 스피너 표시 시작
+    await fetchRestaurants(); // 데이터 다시 가져오기
+  };
+
   // 마운트 시 최초 1회
   // useEffect(() => {
   //   fetchRestaurants();
@@ -147,6 +156,8 @@ const HomeScreen = ({ navigation }: Props) => {
           }} />}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, flexGrow: 1, paddingTop: 10 }}
+          onRefresh={onRefresh}       // 당겼을 때 실행할 함수
+          refreshing={refreshing}     // 현재 새로고침 중인지 여부 (true면 상단에 스피너 돔)
           ListEmptyComponent={() => (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
               <View style={{ 

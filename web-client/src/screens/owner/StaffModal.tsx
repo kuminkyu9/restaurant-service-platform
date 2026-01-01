@@ -5,6 +5,7 @@ import type { Employment } from '@restaurant/shared-types/restaurant';
 import { isEmpty } from '@restaurant/shared-types/utils';
 import { useMyEmployment, useAddEmployment, useEditEmployment, useDeleteEmployment } from '@/hooks/queries/useEmployment';
 import Spinner from '../Spinner';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -29,6 +30,9 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
 
   const [activeTab, setActiveTab] = useState<'current' | 'hire'>('current');
   const [editingId, setEditingId] = useState<number | null>(null);  // employmentId
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   // React Hook Form 설정
   const { 
@@ -90,9 +94,19 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
   }
   
   const delStaff = (data: Employment) => {
-    console.log(data);
-    console.log('해당 스태프 해고!');
-    handleDeleteEmployment(data.id);
+    setDeleteTargetId(data.id);
+    setIsDeleteModalOpen(true);
+    // console.log(data);
+    // console.log('확인/취소 모달 띄우기');
+    // handleDeleteEmployment(data.id);
+  }
+
+  const executeDelete = () => {
+    if (deleteTargetId) {
+      console.log(`해당 스태프 해고! ${deleteTargetId}`);
+      handleDeleteEmployment(deleteTargetId);
+      setDeleteTargetId(null); // 초기화
+    }
   }
 
   const close = () => {
@@ -354,6 +368,20 @@ export default function StaffModal({ isOpen, onClose, restaurantId }: StaffModal
           )}
         </div>
       </div>
+      {/* 삭제시 확인/취소 모달 */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteTargetId(null);
+        }}
+        onConfirm={executeDelete}
+        title="스태프 해고"
+        message="해당 스태프를 정말로 해고하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        confirmText="해고하기"
+        cancelText="취소"
+        type="danger"
+      />
     </div>
   );
 }

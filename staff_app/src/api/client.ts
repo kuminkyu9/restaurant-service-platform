@@ -32,6 +32,11 @@ client.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    
+    // 로그인 경로는 401이 나더라도 토큰 갱신 시도를 하지 않음
+    if (originalRequest.url.includes('/login')) { 
+      return Promise.reject(error);
+    }
 
     // 401 에러이고, 재시도한 적이 없을 때
     if (error.response?.status === 401 && !originalRequest._retry) {
