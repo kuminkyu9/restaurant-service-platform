@@ -6,6 +6,9 @@ import { deleteS3Image } from '@/utils/s3-client';
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
+// 환경에 따라 폴더명 결정 (production이면 'prod', 아니면 'dev')
+const envFolder = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
+
 // 메뉴 목록 조회 (GET /restaurants/:restaurantId/categories/:categoryId/menus)
 export const getMenus = async (req: Request, res: Response) => {
 // router.get('/', async (req: Request, res: Response) => {
@@ -62,7 +65,7 @@ export const postMenu = async (req: Request, res: Response) => {
 
     let imageUrl: string | null = null;
     if (file) {
-      const key = `menus/${ownerId}/${Date.now()}-${file.originalname}`;
+      const key = `${envFolder}/menus/${ownerId}/${Date.now()}-${file.originalname}`;
       // const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
       const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
@@ -127,7 +130,7 @@ export const patchMenu = async (req: Request, res: Response) => {
     let imageUrl: string | null = null;
     // 이미지 파일이 있을 경우 S3 업로드
     if (file) {
-      const key = `menus/${ownerId}/${Date.now()}-${file.originalname}`;
+      const key = `${envFolder}/menus/${ownerId}/${Date.now()}-${file.originalname}`;
       // const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
       const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
