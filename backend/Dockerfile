@@ -3,6 +3,9 @@
 # 1. Node.js 이미지 기반
 FROM node:20-alpine
 
+# [추가] 1-1. OpenSSL 설치 (Prisma 호환성 문제 해결)
+RUN apk add --no-cache openssl
+
 # 2. 작업 디렉토리 설정
 WORKDIR /app
 
