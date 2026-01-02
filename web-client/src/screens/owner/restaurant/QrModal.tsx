@@ -16,41 +16,49 @@ const QrModal = ({ isOpen, isRendered, restaurant, tableNumber, closeModal }: it
   const qrRef = useRef<HTMLDivElement>(null); 
 
   const downloadQrCode = () => {
-    console.log('다운로드 버튼 클릭됨');
+    console.log('다운로드 버튼 클릭');
     if (qrRef.current) {
       const svgElement = qrRef.current.querySelector('svg');
       if (svgElement) {
-        // 1. SVG 데이터를 문자열로 직렬화
         const serializer = new XMLSerializer();
         let svgSource = serializer.serializeToString(svgElement);
+
+        // 1. 올바른 XMLNS 주소로 수정 (중요)
         if (!svgSource.match(/^<svg[^>]+xmlns="http:\/\/www.w3.org\/2000\/svg"/)) {
           svgSource = svgSource.replace(/^<svg/, '<svg xmlns="www.w3.org"');
         }
-        // 2. 임시 Image 객체를 만들어 SVG 데이터를 로드
+
+        // 2. SVG의 실제 렌더링 크기 가져오기
+        const rect = svgElement.getBoundingClientRect();
+        const svgWidth = rect.width || 256; // 기본값 설정
+        const svgHeight = rect.height || 256;
+
         const image = new Image();
-        // CORS 이슈를 피하기 위해 anonymous 설정 (선택 사항이지만 안전함)
         image.crossOrigin = 'anonymous'; 
         image.onload = () => {
-          // 3. 임시 Canvas 요소를 생성
           const canvas = document.createElement('canvas');
-          canvas.width = image.width;
-          canvas.height = image.height;
+          const padding = 40; 
+
+          // 3. 계산된 크기 기반으로 캔버스 설정
+          canvas.width = svgWidth + padding * 2;
+          canvas.height = svgHeight + padding * 2;
+
           const ctx = canvas.getContext('2d');
-          // 4. Canvas에 Image(SVG) 그림
           if (ctx) {
-            ctx.drawImage(image, 0, 0);
-            // 5. Canvas 데이터를 PNG 이미지 Data URL로 추출
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // 4. 이미지 그릴 때 크기 명시 (가장 안전함)
+            ctx.drawImage(image, padding, padding, svgWidth, svgHeight);
+
             const pngUrl = canvas.toDataURL("image/png");
-            // 6. 다운로드 링크를 만듭니다.
             const link = document.createElement('a');
             link.href = pngUrl;
-            link.download = `qrcode_image.png`; // PNG 파일로 저장
+            link.download = `qrcode_${tableNumber || 'image'}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
           }
         };
-        // Image source에 SVG data URL 할당 (onload 트리거)
         image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgSource);
       }
     }

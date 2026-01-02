@@ -18,6 +18,7 @@ router.patch('/:id', authenticateToken, upload.single('image'), RestaurantContro
 router.delete('/:id', authenticateToken, RestaurantController.delRestaurant);
 
 // 현재 식당 조회 (GET /restaurants/:id)    단일 식당 정보 가져오는거 손님쪽에 사용중
-router.get('/:id', authenticateToken, RestaurantController.getRestaurant);
+router.get('/:id', RestaurantController.getRestaurant); // 손님은 비회원임
+// router.get('/:id', authenticateToken, RestaurantController.getRestaurant);
 
 export default router;
