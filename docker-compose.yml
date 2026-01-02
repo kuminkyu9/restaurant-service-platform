@@ -7,6 +7,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      - NODE_ENV=production # 이거 개발에서는 주석해야함
       - DATABASE_URL=postgresql://postgres:1234@db:5432/restaurant_db?schema=public
       - PORT=3000
       # AWS 키 등은 나중에 EC2에서 .env로 주입하거나 여기서 직접 넣음
