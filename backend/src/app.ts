@@ -11,7 +11,14 @@ import staffRoutes from '@/routes/staff-routes';
 
 const app: Express = express();
 
-app.use(cors());
+// 개발
+// app.use(cors());
+
+// 배포시
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173", 
+  credentials: true 
+}));
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {

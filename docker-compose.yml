@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # 1. 백엔드 서비스
+  backend:
+    build: ./backend  # backend 폴더의 Dockerfile을 씀
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/restaurant_db?schema=public
+      - PORT=3000
+      # AWS 키 등은 나중에 EC2에서 .env로 주입하거나 여기서 직접 넣음
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+    depends_on:
+      - db
+
+  # 2. 데이터베이스 서비스 (Postgres)
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: restaurant_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
