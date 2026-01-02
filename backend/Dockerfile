@@ -27,5 +27,5 @@ RUN pnpm build
 # 8. 포트 노출
 EXPOSE 3000
 
-# 9. 서버 실행
+# 9. 서버 실행 (컨테이너 실행 시점에 마이그레이션 + 서버 시작)
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
