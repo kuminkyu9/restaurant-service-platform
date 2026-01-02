@@ -6,24 +6,26 @@ FROM node:20-alpine
 # 2. 작업 디렉토리 설정
 WORKDIR /app
 
-# 3. pnpm 설치를 위한 준비
+# 3. pnpm 설치
 RUN npm install -g pnpm
 
-# 4. 패키지 파일 복사 및 설치
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# 4. 패키지 파일 복사 (lock 파일 제거, package.json만 복사)
+COPY package.json ./
 
-# 5. 소스 코드 복사 (Prisma 포함)
+# [수정] --frozen-lockfile 옵션 제거 (lock 파일 없이도 설치되게)
+RUN pnpm install
+
+# 5. 소스 코드 복사
 COPY . .
 
 # 6. Prisma 클라이언트 생성
 RUN npx prisma generate
 
-# 7. 빌드 (TypeScript -> JavaScript)
+# 7. 빌드
 RUN pnpm build
 
 # 8. 포트 노출
 EXPOSE 3000
 
-# 9. 서버 실행 (DB 마이그레이션 후 시작)
+# 9. 서버 실행
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
