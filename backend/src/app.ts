@@ -16,8 +16,14 @@ const app: Express = express();
 
 // 배포시
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173", 
-  credentials: true 
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://food-manager.shop", 
+    // 실제 vercel 배포 주소
+    "https://restaurant-service-platform-web-cli.vercel.app"
+  ], 
+  credentials: true, // 쿠키 등 인증 정보 허용
 }));
 app.use(express.json());
 
