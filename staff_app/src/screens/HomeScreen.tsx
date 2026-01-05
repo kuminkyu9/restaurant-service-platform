@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 import * as SecureStore from 'expo-secure-store'; // 토큰삭제용
+import { PROD } from '@/constants/env';
+
 export interface DisplayRestaurant extends MyRestaurantData {
   id: string;        // FlatList keyExtractor용
   isWorking: boolean;
@@ -117,7 +119,12 @@ const HomeScreen = ({ navigation }: Props) => {
           </View>
           <View>
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#333' }}>근무 관리</Text>
-            <Text style={{ fontSize: 12, color: '#666' }}>스태프 대시보드</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 12, color: '#666' }}>스태프 대시보드</Text>
+              {!PROD && (
+                <Text style={{ fontSize: 10, color: '#999', marginLeft: 4 }}>개발</Text>
+              )}
+            </View>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>

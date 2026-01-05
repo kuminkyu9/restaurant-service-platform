@@ -2,8 +2,9 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Vibration, Alert } from 'react-native';
+import { SERVER_URL } from '@/constants/env';
 
-const SERVER_URL = "http://192.168.200.182:3000"; // 내 pc 
+// const SERVER_URL = "http://192.168.200.182:3000"; // 내 pc 
 // const SERVER_URL = "http://localhost:3000"; 
 
 export const useSocketService = (

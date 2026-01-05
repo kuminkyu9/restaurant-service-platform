@@ -20,10 +20,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.minkyu.staffapp", 
+      "package": "com.minkyu.staffapp",
       "permissions": [
         "android.permission.VIBRATE",
-        "android.permission.INTERNET" 
+        "android.permission.INTERNET"
       ],
       "edgeToEdgeEnabled": true
     },
@@ -40,6 +40,11 @@
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "71e00de8-babe-4b52-9231-bbe264cd2bae"
+      }
+    }
   }
 }

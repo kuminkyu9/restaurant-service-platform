@@ -1,12 +1,13 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
+import { SERVER_URL as BASE_URL } from '@/constants/env';
 
 // 실제 개발 서버 IP로 변경필요(localhost는 안드로이드 에뮬레이터에서 안 됨)
 // 안드로이드 에뮬레이터: 'http://10.0.2.2:3000'
 // iOS 시뮬레이터: 'http://localhost:3000'
 // 실제 기기: 'http://내PC_IP주소:3000'
-const BASE_URL = 'http://192.168.200.182:3000'; // 내 pc IPv4
+// const BASE_URL = 'http://192.168.200.182:3000'; // 내 pc IPv4
 
 const client = axios.create({
   baseURL: BASE_URL,
