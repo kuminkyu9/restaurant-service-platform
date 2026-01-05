@@ -88,6 +88,7 @@ const LoginScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="이메일 (ID)"
+            placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -96,6 +97,7 @@ const LoginScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="비밀번호"
+            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry

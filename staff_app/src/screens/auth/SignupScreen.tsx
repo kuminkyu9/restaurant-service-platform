@@ -53,6 +53,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="홍길동"
+            placeholderTextColor="#999"
             value={name}
             onChangeText={setName}
           />
@@ -63,6 +64,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="example@email.com"
+            placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -75,6 +77,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="비밀번호 입력"
+            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -86,6 +89,7 @@ const SignupScreen = ({ navigation }: Props) => {
           <TextInput
             style={styles.input}
             placeholder="비밀번호 재입력"
+            placeholderTextColor="#999"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
