@@ -83,7 +83,7 @@ React(Web), React Native(App), Express(Backend)를 **pnpm Monorepo**로 구성�
 본 프로젝트는 **PostgreSQL**을 사용하며, 다중 점포와 유연한 고용 관계를 지원하도록 설계되었습니다.
 
 <div align="left">
-  <img src="./docs/restaurant_service_platform_erd.png" width="70%" />
+  <img src="./docs/restaurant_service_platform_erd.png" width="100%" />
 </div>
 
 #### 핵심 설계 전략
