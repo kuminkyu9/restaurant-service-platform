@@ -189,5 +189,5 @@ pnpm --filter ./backend exec prisma db push
 ---
 
 ## 📬 Contact
-*   **Email:** minkugu@naver.com (본인 이메일)
-*   **Github:** [github.com/아이디](https://github.com/kuminkyu9)
+*   **Email:** minkugu@naver.com
+*   **Github:** https://github.com/kuminkyu9
