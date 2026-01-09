@@ -8,13 +8,14 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "types": ["node", "express", "cors"],
+    "types": ["node", "express", "cors", "jest"],
     "baseUrl": "./",
     "noImplicitAny": true,
     "useUnknownInCatchVariables": true,
     "paths": {
       "@/*": ["src/*"],
-      // 👇 output 경로를 @prisma/client라고 속이는 설정(schema.prisma의 generator client의 output 속성값)
+      // 👇 output 경로를 @prisma/client라고 속이는 설정(schema.prisma의 generator client의 output 속성값) 개발시 주석해제 필요?
+      // 개발때는 주석 해제
       // "@prisma/client": ["./node_modules/.prisma/client"]
     }
   },
