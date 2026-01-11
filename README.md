@@ -18,6 +18,8 @@
   <img src="https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazonaws&logoColor=white"/>
   <img src="https://img.shields.io/badge/pnpm-%234a4a4a.svg?style=for-the-badge&logo=pnpm&logoColor=f69220" />
   <img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" />
+  <img src="https://img.shields.io/badge/Supertest-Success?style=for-the-badge&logo=testing-library&logoColor=white" />
 </div>
 
 <br/>
@@ -102,6 +104,16 @@ React(Web), React Native(App), Express(Backend)를 **pnpm Monorepo**로 구성�
 4.  **데이터 무결성 및 스냅샷 (Data Integrity & Snapshot)**
     *   **급여 정산**: `work_logs`에 근무 당시의 시급(`hourly_wage`)을 스냅샷으로 저장하여, 추후 시급이 인상되어도 과거 급여 계산에 오류가 없도록 했습니다.
     *   **매출 통계**: `order_items`에 주문 당시의 메뉴 가격(`price`)을 저장하여, 메뉴 가격 변동이 과거 매출 리포트에 영향을 주지 않도록 설계했습니다.
+
+---
+
+## 🧪 테스트 및 안정성 (Testing & Reliability)
+서비스의 안정적인 운영과 배포 전 기능 검증을 위해 **Jest**와 **Supertest**를 활용한 통합 테스트 환경을 구축했습니다.
+
+### 🛡️ 통합 테스트 (Integration Test)
+*   **API 시나리오 검증:** 실제 DB(Prisma)와 연동하여 `식당 생성 -> 수정 -> 조회 -> 폐업(Soft Delete)`으로 이어지는 전체 라이프사이클을 테스트합니다.
+*   **보안 검증:** `JWT` 인증 미들웨어와 연동하여, 유효하지 않은 토큰이나 권한 없는 접근(403 Forbidden)을 사전에 차단하는지 검증합니다.
+*   **환경 격리:** 테스트 실행 시 전용 환경변수와 트랜잭션 롤백(또는 데이터 초기화)을 적용하여, 로컬 개발 데이터에 영향을 주지 않도록 설계했습니다.
 
 ---
 
@@ -208,6 +220,13 @@ pnpm --filter ./backend exec prisma studio
 # 5.4 스키마 단순 동기화 (프로토타이핑용)
 # 마이그레이션 파일 생성 없이 DB 구조만 빠르게 바꿉니다. (주의: 데이터 유실 가능성 있음)
 pnpm --filter ./backend exec prisma db push
+```
+
+### 6. 테스트 (Test)
+백엔드 API의 기능 무결성을 검증하기 위해 통합 테스트를 실행합니다.
+```bash
+# 백엔드 통합 테스트 실행
+pnpm --filter ./backend test
 ```
 
 ---
