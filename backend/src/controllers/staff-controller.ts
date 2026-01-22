@@ -3,7 +3,6 @@ import prisma from '@/utils/prisma';
 
 // 직원이 자신이 고용된 식당 목록 조회 (GET /staff/restaurants)
 export const getStaffRestaurant = async (req: Request, res: Response) => {
-// router.get('/restaurants', authenticateToken, async (req: Request, res: Response) => {
   try {
     // 토큰에서 로그인한 직원 ID 추출
     const staffId = req.user?.id;
@@ -77,7 +76,6 @@ export const getStaffRestaurant = async (req: Request, res: Response) => {
     });
   }
 };
-// });
 
 // 한국 시간(KST) 기준의 오늘 날짜(00:00:00)를 구하는 헬퍼 함수
 const getKSTDate = () => {
@@ -92,7 +90,6 @@ const getKSTDate = () => {
 
 // 출근 / 퇴근 처리 API (토글 방식 or 타입 구분 방식) (POST /staff/work-logs/:restaurantId)
 export const postStaffWork = async (req: Request, res: Response) => {
-// router.post('/work-logs/:restaurantId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const staffId = req.user?.id;
@@ -166,12 +163,10 @@ export const postStaffWork = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러 발생' });
   }
 };
-// });
 
 
 // 내 근무 기록 조회 API (전체 식당) (GET /staff/work-logs)
 export const getStaffWorkLogs = async (req: Request, res: Response) => {
-// router.get('/work-logs', authenticateToken, async (req: Request, res: Response) => {
   try {
     const staffId = req.user?.id;
     if (!staffId) return res.status(401).json({ success: false, message: '인증 정보 없음' });
@@ -241,12 +236,10 @@ export const getStaffWorkLogs = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러 발생' });
   }
 };
-// });
 
 
 // 특정 식당의 주문 목록 조회 (GET /staff/restaurants/:restaurantId/orders) /staff/restaurants/1/orders?status=active || /staff/restaurants/1/orders?status=finished
 export const getRestaurantOrders = async (req: Request, res: Response) => {
-// router.get('/restaurants/:restaurantId/orders', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const staffId = req.user?.id;
@@ -329,12 +322,10 @@ export const getRestaurantOrders = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러 발생' });
   }
 };
-// });
 
 
 // 주문 상태 변경 (PATCH /staff/restaurants/:restaurantId/orders/:orderId/status)
 export const patchOrderStatus = async (req: Request, res: Response) => {
-// router.patch('/restaurants/:restaurantId/orders/:orderId/status', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId, orderId } = req.params;
     const { status } = req.body; // 변경할 상태 (PENDING, COOKING, SERVED, COMPLETED, CANCELED)
@@ -387,4 +378,3 @@ export const patchOrderStatus = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러 발생' });
   }
 };
-// });

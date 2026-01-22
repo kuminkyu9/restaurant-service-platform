@@ -7,7 +7,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'default_secret'; // 환경변수�
 
 // 스태프 회원가입 (POST /auth/staff/register)
 export const createSignUpStaff = async (req: Request, res: Response) => {
-// router.post('/staff/register', async (req: Request, res: Response) => {
   try {
     const { email, password, name } = req.body;
     if (!email || !password || !name) {
@@ -50,11 +49,9 @@ export const createSignUpStaff = async (req: Request, res: Response) => {
     });
   }
 };
-// });
 
 // 스태프 로그인 (POST /auth/staff/login)
 export const postLoginStaff = async (req: Request, res: Response) => {
-// router.post('/staff/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -90,11 +87,9 @@ export const postLoginStaff = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러', error: 'Unknown error' });
   }
 };
-// });
 
 // 사장님 회원가입 (POST /auth/owner/register)
 export const postSignUpOwner = async (req: Request, res: Response) => {
-// router.post('/owner/register', async (req: Request, res: Response) => {
   try {
     const { email, password, name } = req.body;
 
@@ -148,11 +143,9 @@ export const postSignUpOwner = async (req: Request, res: Response) => {
     });
   }
 };
-// });
 
 // 사장님 로그인 (POST /auth/owner/login)
 export const postLoginOwner = async (req: Request, res: Response) => {
-// router.post('/owner/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -195,12 +188,9 @@ export const postLoginOwner = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러', error: 'Unknown error' });
   }
 };
-// });
 
 // 사장님 회원 탈퇴 (DELETE /auth/owner/withdraw)   
-// !!!! !!!! 이거 사용하려면 soft 삭제 부분 적용해야함 restaurant, category, menu 등 연관 테이블 싹다 soft delete 적용필요
 export const delWithdrawOwner = async (req: Request, res: Response) => {
-// router.delete('/owner/withdraw', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -250,4 +240,3 @@ export const delWithdrawOwner = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '탈퇴 처리 중 오류 발생' });
   }
 };
-// });

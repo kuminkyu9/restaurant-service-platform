@@ -5,7 +5,6 @@ import { deleteS3Images } from '@/utils/s3-client';
 // 카테고리 목록 조회 (GET /restaurants/:restaurantId/categories)
 // 카테고리 목록 조회: 손님용 (GET /restaurants/:restaurantId/categories?tableNumber=5)
 export const getCategoryMenus = async (req: Request, res: Response) => {
-// router.get('/', async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const { tableNumber } = req.query;
@@ -59,11 +58,9 @@ export const getCategoryMenus = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 // 카테고리 추가 (POST /restaurants/:restaurantId/categories)
 export const postCategory = async (req: Request, res: Response) => {
-// router.post('/', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params; // URL에서 식당 ID 가져옴
     const { name } = req.body;
@@ -101,11 +98,9 @@ export const postCategory = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '카테고리 추가 실패' });
   }
 };
-// });
 
 // 카테고리 수정 (PATCH /restaurants/:restaurantId/categories/:categoryId)
 export const patchCategory = async (req: Request, res: Response) => {
-// router.patch('/:categoryId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId, categoryId } = req.params;
     const { name } = req.body;
@@ -144,11 +139,9 @@ export const patchCategory = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 // 카테고리 삭제 (DELETE /restaurants/:restaurantId/categories/:categoryId)
 export const delCategory = async (req: Request, res: Response) => {
-// router.delete('/:categoryId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId, categoryId } = req.params;
     const ownerId = req.user?.id;
@@ -220,4 +213,3 @@ export const delCategory = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });

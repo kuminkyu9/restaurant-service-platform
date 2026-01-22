@@ -3,7 +3,6 @@ import prisma from '@/utils/prisma';
 
 // 스태프 고용하기 (POST /employment/:restaurantId)
 export const postEmploymentStaff = async (req: Request, res: Response) => {
-// router.post('/:restaurantId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const ownerId = req.user?.id;
@@ -100,12 +99,10 @@ export const postEmploymentStaff = async (req: Request, res: Response) => {
     });
   }
 };
-// });
 
 
 // 스태프 고용 정보 수정하기 (PATCH /employment/:restaurantId/:employmentId)
 export const patchEmploymentStaff = async (req: Request, res: Response) => {
-// router.patch('/:restaurantId/:employmentId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId, employmentId } = req.params;
     const ownerId = req.user?.id;
@@ -151,11 +148,9 @@ export const patchEmploymentStaff = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '수정 실패' });
   }
 };
-// });
 
 // 스태프 목록 조회 (GET /employment/:restaurantId)
 export const getEmploymentStaffs = async (req: Request, res: Response) => {
-// router.get('/:restaurantId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     const ownerId = req.user?.id;
@@ -206,11 +201,9 @@ export const getEmploymentStaffs = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '목록 조회 실패' });
   }
 };
-// });
 
 // 스태프 고용 정보 삭제 해고 (DELETE /employment/:employmentId)
 export const delEmploymentStaff = async (req: Request, res: Response) => {
-// router.delete('/:employmentId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const employmentId = Number(req.params.employmentId);
     const ownerId = req.user?.id;
@@ -245,4 +238,3 @@ export const delEmploymentStaff = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '스태프 고용정보 종료 중 오류 발생' });
   }
 };
-// });

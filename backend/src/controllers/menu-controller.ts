@@ -11,7 +11,6 @@ const envFolder = process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
 
 // 메뉴 목록 조회 (GET /restaurants/:restaurantId/categories/:categoryId/menus)
 export const getMenus = async (req: Request, res: Response) => {
-// router.get('/', async (req: Request, res: Response) => {
   try {
     const { categoryId } = req.params;
 
@@ -32,13 +31,11 @@ export const getMenus = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 // 메뉴 추가 (POST /restaurants/:restaurantId/categories/:categoryId/menus)
 export const postMenu = async (req: Request, res: Response) => {
-// router.post('/', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
-    // URL 파라미터 가져오기 (app.ts에서 정의한 이름과 일치 필요)
+    // URL 파라미터 가져오기 
     const { restaurantId, categoryId } = req.params;
     const { name, price, description } = req.body;
     const ownerId = req.user?.id;
@@ -66,7 +63,6 @@ export const postMenu = async (req: Request, res: Response) => {
     let imageUrl: string | null = null;
     if (file) {
       const key = `${envFolder}/menus/${ownerId}/${Date.now()}-${file.originalname}`;
-      // const key = `restaurants/${ownerId}/${Date.now()}-${file.originalname}`;
       const command = new PutObjectCommand({
         Bucket: BUCKET_NAME,
         Key: key,
@@ -99,11 +95,9 @@ export const postMenu = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '메뉴 추가 실패' });
   }
 };
-// });
 
 // 메뉴 수정 (PATCH /restaurants/:restaurantId/categories/:categoryId/menus/:menuId)
 export const patchMenu = async (req: Request, res: Response) => {
-// router.patch('/:menuId', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const { restaurantId, categoryId, menuId } = req.params;
     const { name, price, description } = req.body;
@@ -149,7 +143,6 @@ export const patchMenu = async (req: Request, res: Response) => {
         name,
         price: price !== undefined ? Number(price) : undefined,
         description,
-        // image,
         image: imageUrl || undefined, // image가 없으면 undefined를 넣어 업데이트 대상에서 제외
       },
     });
@@ -170,11 +163,9 @@ export const patchMenu = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 // 메뉴 삭제 (DELETE /restaurants/:restaurantId/categories/:categoryId/menus/:menuId)
 export const delMenu = async (req: Request, res: Response) => {
-// router.delete('/:menuId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { restaurantId, categoryId, menuId } = req.params;
     const ownerId = req.user?.id;
@@ -222,4 +213,3 @@ export const delMenu = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });

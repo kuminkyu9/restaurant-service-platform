@@ -11,7 +11,6 @@ const envFolder = process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
 
 // 식당 추가 (POST /restaurants)
 export const postRestaurant = async (req: Request, res: Response) => {
-// router.post('/', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     // 요청 바디에서 식당 정보 가져오기
     const { name, address, totalTable } = req.body;
@@ -54,7 +53,6 @@ export const postRestaurant = async (req: Request, res: Response) => {
         name,
         address,
         image: imageUrl, // 이미지는 선택 사항
-        // image: image || null, // 이미지는 선택 사항
         totalTable: Number(totalTable), // 혹시 문자열로 올 수 있으니 숫자 변환
         ownerId: ownerId, // 로그인한 사장님 ID로 연결
       },
@@ -76,11 +74,9 @@ export const postRestaurant = async (req: Request, res: Response) => {
     });
   }
 };
-// });
 
 // 내 식당 목록 조회 (GET /restaurants/my)
 export const getRestaurants = async (req: Request, res: Response) => {
-// router.get('/my', authenticateToken, async (req: Request, res: Response) => {
   try {
     const ownerId = req.user?.id;
 
@@ -104,11 +100,9 @@ export const getRestaurants = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 // 식당 정보 수정 (PATCH /restaurants/:id)
 export const patchRestaurant = async (req: Request, res: Response) => {
-// router.patch('/:id', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id); // URL 파라미터에서 식당 ID 가져오기
     const ownerId = req.user?.id;
@@ -146,7 +140,6 @@ export const patchRestaurant = async (req: Request, res: Response) => {
       data: {
         name,      // 값이 undefined면 Prisma가 알아서 무시함 (부분 수정 가능)
         address,
-        // image,
         image: image || undefined, // image가 없으면 undefined를 넣어 업데이트 대상에서 제외
         totalTable: totalTable ? Number(totalTable) : undefined,
       },
@@ -168,11 +161,9 @@ export const patchRestaurant = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '식당 수정 중 오류 발생' });
   }
 };
-// });
 
 // 식당 삭제 (DELETE /restaurants/:id)  soft 삭제지만 s3 이미지는 지움(폐업 처리 느낌, 복구 안됨)
 export const delRestaurant = async (req: Request, res: Response) => {
-// router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id);
     const ownerId = req.user?.id;
@@ -221,7 +212,7 @@ export const delRestaurant = async (req: Request, res: Response) => {
         where: { id: restaurantId },
         data: { 
           deletedAt: now,
-          image: null // 이미지는 S3에서 지울 거니까 DB에서도 null로 밀어주는 게 깔끔함 (선택사항)
+          image: null // 이미지는 S3에서 지울 거니까 DB에서도 null로 
         },
       });
 
@@ -268,17 +259,12 @@ export const delRestaurant = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '식당 삭제 중 오류 발생' });
   }
 };
-// });
 
 // (손님용) 현재 식당 조회 (GET /restaurants/:id)
 export const getRestaurant = async (req: Request, res: Response) => {
-// router.get('/:id', async (req: Request, res: Response) => {
   try {
     const restaurantId = Number(req.params.id);
 
-    // const restaurant = await prisma.restaurant.findUnique({
-    //   where: { id: Number(restaurantId) },
-    // });
     const restaurant = await prisma.restaurant.findFirst({  // findUnique는 유니크 속성만 넣을 수 있어서 바꿈
       where: { 
         id: restaurantId,
@@ -300,4 +286,3 @@ export const getRestaurant = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });

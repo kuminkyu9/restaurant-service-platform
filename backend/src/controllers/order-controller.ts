@@ -89,10 +89,8 @@ export const createOrder = async (req: Request, res: Response) => {
 };
 
 // 주문 목록 조회 (GET /orders?restaurantId=10&tableNumber=3&status=pending) - 주방/홀 스태프용 (인증 X 또는 간소화)
-// 실제 서비스라면 스태프 로그인이 필요하지만, 지금은 테스트 편의상 restaurantId 쿼리로 조회하게끔
-// (비회원)손님이 주문한 목록 확인하기 위한 api(그래서 #$이거 표시된 조건 추가함) !! 위에꺼 일부 취소
+// (비회원)손님이 주문한 목록 확인하기 위한 api
 export const getOrders = async (req: Request, res: Response) => {
-// router.get('/', async (req: Request, res: Response) => {
   try {
     const { restaurantId, tableNumber, status } = req.query;
 
@@ -135,13 +133,11 @@ export const getOrders = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '서버 에러' });
   }
 };
-// });
 
 
 // 이거 orderId 여서 스태프쪽에서는 orderId 알수가 없어서 생각해보니깐 이거 못쓸듯 staff에 새로 만들거임
 // 주문 상태 변경 (PATCH /orders/:orderId/status) - "조리중", "서빙완료" 등
 export const patchOrder = async (req: Request, res: Response) => {
-// router.patch('/:orderId/status', async (req: Request, res: Response) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -168,4 +164,3 @@ export const patchOrder = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: '상태 변경 실패' });
   }
 };
-// });
