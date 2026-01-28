@@ -12,6 +12,9 @@ interface LoginFormValues {
 const OwnerLogin = () => {
   const navigate = useNavigate();
 
+  // 서비스 중단 여부 플래그
+  const isServiceSuspended = true;
+
   // useForm 훅 초기화
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<LoginFormValues>();
 
@@ -51,7 +54,25 @@ const OwnerLogin = () => {
         </div>
       )}
 
-      <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
+      {isServiceSuspended ? <div>
+        {/* 서비스 중단 안내 UI */}
+        <div className="text-center py-10">
+          <div className="bg-orange-50 text-orange-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 mb-2">서비스 일시 중단 안내</h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6">
+            인프라 비용 절감을 위해 서버 운영을 중단한 상태입니다. <br />
+            프로젝트 관련 내용 확인은 아래 github주소의 README에서 확인 부탁드립니다. <br />
+          </p>
+          <a href='https://github.com/kuminkyu9/restaurant-service-platform' 
+            className="font-semibold text-blue-600 underline hover:text-blue-800">
+            https://github.com/kuminkyu9/restaurant-service-platform
+          </a>
+        </div>
+      </div> : <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm w-full max-w-md p-8">
           {/* Title */}
           <h1 className="text-center text-xl font-semibold text-gray-900 mb-2">
@@ -138,7 +159,7 @@ const OwnerLogin = () => {
             </p> */}
           </div>
         </div>
-      </div>
+      </div>}
     </>
   );
 };

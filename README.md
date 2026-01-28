@@ -1,6 +1,8 @@
 # 🍽️ Restaurant Service Platform (통합 식당 주문 관리 서비스)
 > **식당 사장님, 손님, 아르바이트 직원을 하나로 잇는 올인원 통합 주문 관리 플랫폼**
 
+# 현재 인프라 비용 절감을 위해 서버 운영을 중단한 상태입니다. 실제 동작 과정은 아래의 상세 스크린샷을 참고해 주세요.
+
 <div align="center">
   <img src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" />
